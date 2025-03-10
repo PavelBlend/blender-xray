@@ -627,6 +627,31 @@ def remove_bone_colls(arm):
             colls.remove(coll)
 
 
+class GroupInterface:
+    def __init__(self, group):
+        self.group = group
+
+    def _create_group_socket(self, typ, name, in_out):
+        if IS_4:
+            socket = self.group.interface.new_socket(
+                name=name,
+                socket_type=typ,
+                in_out=in_out
+            )
+        else:
+            if in_out == 'INPUT':
+                socket = self.group.inputs.new(typ, name)
+            else:
+                socket = self.group.outputs.new(typ, name)
+        return socket
+
+    def create_group_input(self, typ, name):
+        return self._create_group_socket(typ, name, 'INPUT')
+
+    def create_group_output(self, typ, name):
+        return self._create_group_socket(typ, name, 'OUTPUT')
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:

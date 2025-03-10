@@ -400,9 +400,10 @@ def _create_group_nodes(
 
     usage = (use_lmap_1, use_lmap_2, use_light, use_sun, use_hemi)
 
-    shader_group = shader_groups.get(usage)
+    # shader group
+    grp = shader_groups.get(usage)
 
-    if not shader_group:
+    if not grp:
         if use_lmap_1 and use_lmap_2:
             group_suffix = 'Light Map'
 
@@ -421,40 +422,31 @@ def _create_group_nodes(
         if group_suffix:
             group_suffix = ': ' + group_suffix
 
-        shader_group = bpy.data.node_groups.new(
+        grp = bpy.data.node_groups.new(
             'Level Shader Group{}'.format(group_suffix),
             'ShaderNodeTree'
         )
-        shader_groups[usage] = shader_group
+        shader_groups[usage] = grp
+
+        group_interface = utils.version.GroupInterface(grp)
+        add_in = group_interface.create_group_input
+        add_out = group_interface.create_group_output
 
         # create inputs
-        tex_rgb = shader_group.inputs.new('NodeSocketColor', 'Texture Color')
-        tex_a = shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
+        tex_rgb = add_in('NodeSocketColor', 'Texture Color')
+        tex_a = add_in('NodeSocketFloat', 'Texture Alpha')
 
-        lmap_rgb = shader_group.inputs.new(
-            'NodeSocketColor',
-            'Light Map 1 Color'
-        )
-        lmap_a = shader_group.inputs.new(
-            'NodeSocketFloat',
-            'Light Map 1 Alpha'
-        )
+        lmap_rgb = add_in('NodeSocketColor', 'Light Map 1 Color')
+        lmap_a = add_in('NodeSocketFloat', 'Light Map 1 Alpha')
 
-        lmap_rgb = shader_group.inputs.new(
-            'NodeSocketColor',
-            'Light Map 2 Color'
-        )
-        lmap_a = shader_group.inputs.new(
-            'NodeSocketFloat',
-            'Light Map 2 Alpha'
-        )
+        lmap_rgb = add_in('NodeSocketColor', 'Light Map 2 Color')
+        lmap_a = add_in('NodeSocketFloat', 'Light Map 2 Alpha')
 
+        bump_1_rgb = add_in('NodeSocketColor', 'Bump 1 Color')
+        bump_1_a = add_in('NodeSocketFloat', 'Bump 1 Alpha')
 
-        bump_1_rgb = shader_group.inputs.new('NodeSocketColor', 'Bump 1 Color')
-        bump_1_a = shader_group.inputs.new('NodeSocketFloat', 'Bump 1 Alpha')
-
-        bump_2_rgb = shader_group.inputs.new('NodeSocketColor', 'Bump 2 Color')
-        bump_2_a = shader_group.inputs.new('NodeSocketFloat', 'Bump 2 Alpha')
+        bump_2_rgb = add_in('NodeSocketColor', 'Bump 2 Color')
+        bump_2_a = add_in('NodeSocketFloat', 'Bump 2 Alpha')
 
         if utils.version.IS_29:
             tex_rgb.hide_value = True
@@ -469,36 +461,36 @@ def _create_group_nodes(
             bump_2_a.hide_value = True
 
         # create outputs
-        shader_group.outputs.new('NodeSocketShader', 'Shader')
+        add_out('NodeSocketShader', 'Shader')
 
         # create group nodes
-        input_node = shader_group.nodes.new('NodeGroupInput')
+        input_node = grp.nodes.new('NodeGroupInput')
         input_node.select = False
         input_node.location.x = -800
 
-        output_node = shader_group.nodes.new('NodeGroupOutput')
+        output_node = grp.nodes.new('NodeGroupOutput')
         output_node.select = False
         output_node.location.x = 800
 
         # create shader node
         if utils.version.support_principled_shader():
-            shader_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
+            shader_node = grp.nodes.new('ShaderNodeBsdfPrincipled')
             shader_node.inputs[utils.version.SPECULAR].default_value = 0.0
             color_socket = 'Base Color'
         else:
-            shader_node = shader_group.nodes.new('ShaderNodeBsdfDiffuse')
+            shader_node = grp.nodes.new('ShaderNodeBsdfDiffuse')
             color_socket = 'Color'
         shader_node.select = False
         shader_node.location.x = 500
 
         # link shader
-        shader_group.links.new(
+        grp.links.new(
             shader_node.outputs['BSDF'],
             output_node.inputs['Shader']
         )
         alpha_link = None
         if utils.version.IS_28:
-            alpha_link = shader_group.links.new(
+            alpha_link = grp.links.new(
                 input_node.outputs['Texture Alpha'],
                 shader_node.inputs['Alpha']
             )
@@ -522,7 +514,7 @@ def _create_group_nodes(
         mix_node = utils.version.get_node('ShaderNodeMix', utils.version.IS_34)
         factor = utils.version.get_node('Factor', utils.version.IS_34)
 
-        light_sun = shader_group.nodes.new(mix_node)
+        light_sun = grp.nodes.new(mix_node)
         light_sun.name = 'Light + Sun'
         light_sun.label = 'Light + Sun'
         light_sun.blend_type = 'ADD'
@@ -531,7 +523,7 @@ def _create_group_nodes(
         light_sun.location.x = -500
         light_sun.location.y = 200
 
-        hemi = shader_group.nodes.new(mix_node)
+        hemi = grp.nodes.new(mix_node)
         hemi.name = '+ Hemi'
         hemi.label = '+ Hemi'
         hemi.blend_type = 'ADD'
@@ -540,7 +532,7 @@ def _create_group_nodes(
         hemi.location.x = -150
         hemi.location.y = 0
 
-        lmap = shader_group.nodes.new(mix_node)
+        lmap = grp.nodes.new(mix_node)
         lmap.name = 'Diffuse * Light Map'
         lmap.label = 'Diffuse * Light Map'
         lmap.blend_type = 'MULTIPLY'
@@ -550,21 +542,21 @@ def _create_group_nodes(
         lmap.location.y = 200
 
         # create bump nodes
-        sep = shader_group.nodes.new(sep_col)
+        sep = grp.nodes.new(sep_col)
         sep.name = 'Separate Bump 1'
         sep.label = 'Separate Bump 1'
         sep.select = False
         sep.location.x = -500
         sep.location.y = -500
 
-        com = shader_group.nodes.new(com_col)
+        com = grp.nodes.new(com_col)
         com.name = 'Combine Bump 1'
         com.label = 'Combine Bump 1'
         com.select = False
         com.location.x = -250
         com.location.y = -400
 
-        bump_mix = shader_group.nodes.new(mix_node)
+        bump_mix = grp.nodes.new(mix_node)
         bump_mix.name = 'Bump Correction'
         bump_mix.label = 'Bump Correction'
         bump_mix.blend_type = 'ADD'
@@ -573,7 +565,7 @@ def _create_group_nodes(
         bump_mix.location.x = 0
         bump_mix.location.y = -500
 
-        norm = shader_group.nodes.new('ShaderNodeNormalMap')
+        norm = grp.nodes.new('ShaderNodeNormalMap')
         norm.name = 'Normal Map'
         norm.label = 'Normal Map'
         norm.uv_map = mat.xray.uv_texture
@@ -596,53 +588,50 @@ def _create_group_nodes(
             col2 = 'Color2'
 
         # vertex colors
-        light_node, sun_node, hemi_node = _create_vert_col_nodes(
-            mat,
-            shader_group
-        )
+        light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, grp)
 
         # link nodes
 
-        shader_group.links.new(
+        grp.links.new(
             lmap.outputs[res],    # Result
             shader_node.inputs[color_socket]
         )
-        shader_group.links.new(
+        grp.links.new(
             input_node.outputs['Texture Color'],
             lmap.inputs[col1]    # color A
         )
-        shader_group.links.new(
+        grp.links.new(
             light_sun.outputs[res],    # Result
             hemi.inputs[col1]    # color A
         )
-        hemi_lmap = shader_group.links.new(
+        hemi_lmap = grp.links.new(
             hemi.outputs[res],    # Result
             lmap.inputs[col2]    # color B
         )
 
         # link light maps
         if use_lmap_1 and use_lmap_2:
-            shader_group.nodes.remove(hemi_node)
+            grp.nodes.remove(hemi_node)
 
-            shader_group.links.new(
+            grp.links.new(
                 input_node.outputs['Light Map 1 Color'],
                 light_sun.inputs[col1]    # color A
             )
-            shader_group.links.new(
+            grp.links.new(
                 input_node.outputs['Light Map 1 Alpha'],
                 light_sun.inputs[col2]    # color B
             )
 
             # soc
             if light_format in ('SOC', '1964-3120'):
-                shader_group.links.new(
+                grp.links.new(
                     input_node.outputs['Light Map 2 Color'],
                     hemi.inputs[col2]    # color B
                 )
 
             # cs/cop
             elif light_format in ('CSCOP', '3436-3844'):
-                shader_group.links.new(
+                grp.links.new(
                     input_node.outputs['Light Map 2 Alpha'],
                     hemi.inputs[col2]    # color B
                 )
@@ -650,89 +639,69 @@ def _create_group_nodes(
         # link terrain
         elif use_lmap_1 and not use_lmap_2:
             if alpha_link:
-                shader_group.links.remove(alpha_link)
-            shader_group.nodes.remove(hemi_node)
+                grp.links.remove(alpha_link)
+            grp.nodes.remove(hemi_node)
 
-            shader_group.links.new(
+            grp.links.new(
                 input_node.outputs['Texture Alpha'],
                 hemi.inputs[col2]    # color B
             )
-            shader_group.links.new(
+            grp.links.new(
                 input_node.outputs['Light Map 1 Color'],
                 light_sun.inputs[col1]    # color A
             )
-            shader_group.links.new(
+            grp.links.new(
                 input_node.outputs['Light Map 1 Alpha'],
                 light_sun.inputs[col2]    # color B
             )
 
         # link vertex colors
         elif light_node and sun_node and hemi_node:
-            shader_group.links.new(
+            grp.links.new(
                 light_node.outputs['Color'],
                 light_sun.inputs[col1]    # color A
             )
-            shader_group.links.new(
+            grp.links.new(
                 sun_node.outputs['Color'],
                 light_sun.inputs[col2]    # color B
             )
-            shader_group.links.new(
+            grp.links.new(
                 hemi_node.outputs['Color'],
                 hemi.inputs[col2]    # color B
             )
 
         # link multiple usage
         elif use_hemi and not use_light and not use_sun:
-            shader_group.links.remove(hemi_lmap)
-            shader_group.nodes.remove(light_sun)
-            shader_group.nodes.remove(hemi)
+            grp.links.remove(hemi_lmap)
+            grp.nodes.remove(light_sun)
+            grp.nodes.remove(hemi)
             lmap.inputs[factor].default_value = 0.5
 
-            shader_group.links.new(
+            grp.links.new(
                 hemi_node.outputs['Color'],
                 lmap.inputs[col2]    # color B
             )
 
         # link bump nodes
-        shader_group.links.new(
-            norm.outputs['Normal'],
-            shader_node.inputs['Normal']
-        )
-        shader_group.links.new(
-            bump_mix.outputs[res],
-            norm.inputs['Color']
-        )
-        shader_group.links.new(
-            com.outputs[col],
-            bump_mix.inputs[col1]
-        )
-        shader_group.links.new(
+        grp.links.new(norm.outputs['Normal'], shader_node.inputs['Normal'])
+        grp.links.new(bump_mix.outputs[res], norm.inputs['Color'])
+        grp.links.new(com.outputs[col], bump_mix.inputs[col1])
+        grp.links.new(
             input_node.outputs['Bump 2 Color'],
             bump_mix.inputs[col2]
         )
-        shader_group.links.new(
-            input_node.outputs['Bump 1 Color'],
-            sep.inputs[col]
-        )
-        shader_group.links.new(
-            input_node.outputs['Bump 1 Alpha'],
-            com.inputs[red]
-        )
-        shader_group.links.new(
-            sep.outputs[blue],
-            com.inputs[green]
-        )
-        shader_group.links.new(
-            sep.outputs[green],
-            com.inputs[blue]
-        )
+        grp.links.new(input_node.outputs['Bump 1 Color'], sep.inputs[col])
+        grp.links.new(input_node.outputs['Bump 1 Alpha'], com.inputs[red])
+        grp.links.new(sep.outputs[blue], com.inputs[green])
+        grp.links.new(sep.outputs[green], com.inputs[blue])
+
         if utils.version.support_principled_shader():
-            shader_group.links.new(
+            grp.links.new(
                 sep.outputs[red],
                 shader_node.inputs[utils.version.SPECULAR]
             )
 
-    group.node_tree = shader_group
+    group.node_tree = grp
 
     return group
 
