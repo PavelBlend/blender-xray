@@ -123,7 +123,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
             row.prop_search(
                 data,
                 'bonepart_name',
-                obj.pose,
+                obj.data if utils.version.IS_4 else obj.pose,
                 utils.version.BONE_GROUPS,
                 text=''
             )
