@@ -44,7 +44,12 @@ shadow_mode_items = (
     ('HASHED', 'Alpha Hashed', '')
 )
 
-renders_28x = ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH')
+renders_28x = (
+    'CYCLES',
+    'BLENDER_EEVEE',
+    'BLENDER_EEVEE_NEXT',
+    'BLENDER_WORKBENCH'
+)
 
 
 class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
