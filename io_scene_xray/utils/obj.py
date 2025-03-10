@@ -203,7 +203,11 @@ def get_armature_object(bpy_obj):
 def apply_obj_modifier(mod, context=None):
     try:
         if context:
-            bpy.ops.object.modifier_apply(context, modifier=mod.name)
+            version.run_op_ctx(
+                bpy.ops.object.modifier_apply,
+                context,
+                modifier=mod.name
+            )
         else:
             bpy.ops.object.modifier_apply(modifier=mod.name)
 
@@ -278,7 +282,8 @@ def merge_meshes(mesh_objects, arm_obj):
             scene.object_bases[ob.name]
             for ob in objects
         ]
-    bpy.ops.object.join(override)
+
+    version.run_op_ctx(bpy.ops.object.join, override)
 
     # remove uvs
     uv_layers = [uv_layer.name for uv_layer in active_object.data.uv_layers]

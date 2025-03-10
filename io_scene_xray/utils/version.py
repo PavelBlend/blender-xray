@@ -652,6 +652,15 @@ class GroupInterface:
         return self._create_group_socket(typ, name, 'OUTPUT')
 
 
+def run_op_ctx(operator, override_context, *args, **kwargs):
+    # execute operator with context override
+    if IS_4:
+        with bpy.context.temp_override(**override_context):
+            operator(*args, **kwargs)
+    else:
+        operator(override_context, *args, **kwargs)
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:

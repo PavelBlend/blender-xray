@@ -293,7 +293,7 @@ def update_file(self, context):
             ctx = bpy.context.copy()
             ctx['area'] = area
             ctx['region'] = area.regions[-1]
-            bpy.ops.view3d.view_selected(ctx)
+            utils.version.run_op_ctx(bpy.ops.view3d.view_selected, ctx)
     utils.version.set_mesh_objects_select(imported_objects, False)
 
 
