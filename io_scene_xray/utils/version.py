@@ -55,7 +55,7 @@ def support_vertex_color_node():
 
 
 def support_shadow_method():
-    return (2, 80, 0) <= bpy.app.version <= (4, 3, 0)
+    return (2, 80, 0) <= bpy.app.version < (4, 3, 0)
 
 
 def has_set_normals_from_faces():
