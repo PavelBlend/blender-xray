@@ -128,7 +128,6 @@ SHADER_NODES = {
     'Factor': 'Fac'
 }
 
-
 if IS_4:
     SPECULAR = 'Specular IOR Level'
     BONE_GROUPS = 'collections'

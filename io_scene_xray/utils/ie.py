@@ -13,6 +13,9 @@ from .. import log
 from .. import text
 
 
+# import/export utils
+
+
 class BaseOperator(bpy.types.Operator):
     report_catcher = None
 
@@ -21,9 +24,6 @@ class BaseOperator(bpy.types.Operator):
             return self.report_catcher
 
         return super().__getattribute__(item)
-
-
-# import/export utils
 
 
 def _get_selection_state(context):

@@ -184,6 +184,7 @@ def set_gl_state():
         bgl.glEnable(bgl.GL_CULL_FACE)
         bgl.glCullFace(bgl.GL_FRONT)
 
+
 def reset_gl_state():
     if version.IS_293:
         gpu.state.depth_test_set('NONE')
