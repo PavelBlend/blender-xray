@@ -141,6 +141,14 @@ else:
     SPECULAR = 'Specular'
     BONE_GROUPS = 'bone_groups'
 
+CYCLES_COMPATIBLE_RENDS = (
+    'CYCLES',
+    'BLENDER_EEVEE',
+    'BLENDER_EEVEE_NEXT',
+    'BLENDER_WORKBENCH'
+)
+INTERAL_COMPATIBLE_RENDS = ('BLENDER_RENDER', 'BLENDER_GAME')
+
 
 def get_icon(icon):
     if IS_28:

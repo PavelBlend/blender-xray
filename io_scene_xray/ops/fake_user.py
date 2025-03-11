@@ -69,12 +69,6 @@ class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
 
     def execute(self, context):
         input_objects = set()
-        cycles_compatible_rends = (
-            'CYCLES',
-            'BLENDER_EEVEE',
-            'BLENDER_WORKBENCH'
-        )
-        interal_compatible_rends = ('BLENDER_RENDER', 'BLENDER_GAME')
         rend = context.scene.render.engine
         change_data_blocks_count = 0
 
@@ -101,7 +95,7 @@ class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
                     bpy.data.armatures,
                     bpy.data.actions
                 }
-                if rend in interal_compatible_rends:
+                if rend in utils.version.INTERAL_COMPATIBLE_RENDS:
                     data_collections.add(bpy.data.textures)
             else:
                 data_collections = set()
@@ -112,7 +106,7 @@ class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
                 if 'MATERIALS' in self.data:
                     data_collections.add(bpy.data.materials)
                 if 'TEXTURES' in self.data:
-                    if rend in interal_compatible_rends:
+                    if rend in utils.version.INTERAL_COMPATIBLE_RENDS:
                         data_collections.add(bpy.data.textures)
                 if 'IMAGES' in self.data:
                     data_collections.add(bpy.data.images)
@@ -155,14 +149,14 @@ class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
                 mat = mat_slot.material
                 if mat:
                     materials.add(mat)
-                    if rend in cycles_compatible_rends:
+                    if rend in utils.version.CYCLES_COMPATIBLE_RENDS:
                         # collect images
                         for node in mat.node_tree.nodes:
                             if node.type == 'TEX_IMAGE':
                                 img = node.image
                                 if img:
                                     images.add(img)
-                    elif rend in interal_compatible_rends:
+                    elif rend in utils.version.INTERAL_COMPATIBLE_RENDS:
                         # collect textures
                         for tex_slot in mat.texture_slots:
                             if tex_slot:

@@ -44,13 +44,6 @@ shadow_mode_items = (
     ('HASHED', 'Alpha Hashed', '')
 )
 
-renders_28x = (
-    'CYCLES',
-    'BLENDER_EEVEE',
-    'BLENDER_EEVEE_NEXT',
-    'BLENDER_WORKBENCH'
-)
-
 
 class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_shader_params'
@@ -235,8 +228,9 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
             row.prop(self, prop_value, toggle=True)
 
     def _get_render_status(self, context):
-        is_cycles = context.scene.render.engine in renders_28x
-        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
+        rend = context.scene.render.engine
+        is_cycles = rend in utils.version.CYCLES_COMPATIBLE_RENDS
+        is_internal = rend in utils.version.INTERAL_COMPATIBLE_RENDS
 
         return is_cycles, is_internal
 

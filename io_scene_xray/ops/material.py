@@ -387,11 +387,13 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
             'change_viewport_color',
             text='Change Viewport Color'
         )
-        column.prop(
-            self,
-            'change_shader_color',
-            text='Change Shader Color'
-        )
+        is_cycles = context.scene.render.engine in utils.version.CYCLES_COMPATIBLE_RENDS
+        if is_cycles:
+            column.prop(
+                self,
+                'change_shader_color',
+                text='Change Shader Color'
+            )
 
     def get_obj_mats(self, objs):
         materials = set()
@@ -476,13 +478,16 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
                     ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
                 )
                 color = [color.r, color.g, color.b]
+                shader_color = color.copy()
+                shader_color.append(1.0)    # alpha
             if utils.version.IS_28:
                 color.append(1.0)    # alpha
             changed = False
             if self.change_viewport_color:
                 mat.diffuse_color = color
                 changed = True
-            if self.change_shader_color:
+            is_cycles = context.scene.render.engine in utils.version.CYCLES_COMPATIBLE_RENDS
+            if self.change_shader_color and is_cycles:
                 output_node = None
                 for node in mat.node_tree.nodes:
                     if node.type == 'OUTPUT_MATERIAL':
@@ -498,7 +503,7 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
                         if color_socket is None:
                             color_socket = shader_node.inputs.get('Base Color')
                         if color_socket:
-                            color_socket.default_value = color
+                            color_socket.default_value = shader_color
                             changed = True
             if changed:
                 changed_materials_count += 1
