@@ -9,7 +9,7 @@ commands.append('del .coverage\n')
 for root, dirs, files in os.walk(blend_folder):
     for file in files:
         if file == 'blender.exe':
-            path = os.path.join(root, file)
+            path = '{0: <60}'.format(os.path.join(root, file))
             dir_name = os.path.basename(root)
             ver = dir_name.split('-')[1]
             cmd = command.format(path, ver)
