@@ -50,6 +50,12 @@ def get_arm_obj():
     return arm_obj
 
 
+def draw_props(self):    # pragma: no cover
+    layout = self.layout
+
+    utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
+
+
 class XRAY_OT_import_skls(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
@@ -88,6 +94,8 @@ class XRAY_OT_import_skls(
     __parsed_file_name = None
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+
         layout = self.layout
 
         utils.draw.draw_files_count(self)
@@ -239,13 +247,23 @@ class XRAY_OT_export_skl_file(
 
     filename_ext = skl_ext
 
+    # file browser properties
     filter_glob = bpy.props.StringProperty(
         default='*'+skl_ext,
         options={'HIDDEN'}
     )
+
+    # export properties
+    fmt_ver = ie.PropSDKVersion()
+
+    # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     action = None
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+        draw_props(self)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -255,6 +273,7 @@ class XRAY_OT_export_skl_file(
         utils.stats.update('Export *.skl')
 
         export_context = exp.ExportSklsContext()
+        export_context.fmt_ver = self.fmt_ver
         export_context.bpy_arm_obj = get_arm_obj()
         export_context.action = self.action
 
@@ -279,6 +298,10 @@ class XRAY_OT_export_skl_file(
         if not self.filepath.lower().endswith(skl_ext):
             self.filepath += skl_ext
 
+        # set defaults
+        pref = utils.version.get_preferences()
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.skl_export_fmt_ver)
+
         return super().invoke(context, event)
 
 
@@ -300,6 +323,13 @@ class XRAY_OT_export_skls_file(
         options={'HIDDEN'}
     )
 
+    # export properties
+    fmt_ver = ie.PropSDKVersion()
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+        draw_props(self)
+
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.execute_require_filepath
@@ -308,6 +338,7 @@ class XRAY_OT_export_skls_file(
         utils.stats.update('Export *.skls')
 
         export_context = exp.ExportSklsContext()
+        export_context.fmt_ver = self.fmt_ver
         export_context.bpy_arm_obj = get_arm_obj()
 
         if not self.filepath.lower().endswith(skls_ext):
@@ -336,6 +367,10 @@ class XRAY_OT_export_skls_file(
             if action:
                 self.actions.append(action)
 
+        # set defaults
+        pref = utils.version.get_preferences()
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.skl_export_fmt_ver)
+
         context.window_manager.fileselect_add(self)
 
         return {'RUNNING_MODAL'}
@@ -354,6 +389,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
     ext = skls_ext
     filename_ext = skls_ext
 
+    # file browser properties
     directory = bpy.props.StringProperty(
         subtype='FILE_PATH',
         options={'HIDDEN'}
@@ -362,7 +398,16 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
         default='*' + skls_ext,
         options={'HIDDEN'}
     )
+
+    # export properties
+    fmt_ver = ie.PropSDKVersion()
+
+    # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+        draw_props(self)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -371,6 +416,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
         utils.stats.update('Export *.skls')
 
         export_context = exp.ExportSklsContext()
+        export_context.fmt_ver = self.fmt_ver
         exp_actions_count = 0
         objects = []
 
@@ -450,6 +496,10 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
             if len(arm_objs) == 1:
                 return bpy.ops.xray_export.skls_file('INVOKE_DEFAULT')
 
+        # set defaults
+        pref = utils.version.get_preferences()
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.skl_export_fmt_ver)
+
         context.window_manager.fileselect_add(self)
 
         return {'RUNNING_MODAL'}
@@ -468,6 +518,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
     ext = skl_ext
     filename_ext = skl_ext
 
+    # file browser properties
     directory = bpy.props.StringProperty(
         subtype='FILE_PATH',
         options={'HIDDEN'}
@@ -476,7 +527,16 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
         default='*'+skl_ext,
         options={'HIDDEN'}
     )
+
+    # export properties
+    fmt_ver = ie.PropSDKVersion()
+
+    # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+        draw_props(self)
 
     @log.execute_with_logger
     @log.with_context('export-skl-batch')
@@ -486,6 +546,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
         utils.stats.update('Export *.skl')
 
         export_context = exp.ExportSklsContext()
+        export_context.fmt_ver = self.fmt_ver
         exp_actions_count = 0
         objects = []
 
@@ -561,6 +622,10 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
+
+        # set defaults
+        pref = utils.version.get_preferences()
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.skl_export_fmt_ver)
 
         context.window_manager.fileselect_add(self)
 

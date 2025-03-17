@@ -20,7 +20,7 @@ class PackedWriter():
         # write vertex coord
         self.data += struct.pack('<3f', vec[0], vec[2], vec[1])
 
-    def puts(self, string):
+    def _puts(self, string):
         try:
             self.data += string.encode('cp1251')
 
@@ -30,7 +30,14 @@ class PackedWriter():
                 log.props(string=string)
             )
 
+    def puts(self, string):
+        self._puts(string)
         self.data += b'\x00'
+
+    def puts_rn(self, string):
+        self._puts(string)
+        self.data.append(0xd)
+        self.data.append(0xa)
 
     def replace(self, offset, byte_list):
         for byte_index, byte in enumerate(byte_list):

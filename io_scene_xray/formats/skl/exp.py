@@ -21,7 +21,7 @@ def _export_skl(chunked_writer, context):
         root_obj = arm_obj
 
     writer = rw.write.PackedWriter()
-    motions.exp.export_motion(writer, context.action, arm_obj, root_obj)
+    motions.exp.export_motion(writer, context.action, context, root_obj)
     chunked_writer.put(0x1200, writer)
 
 

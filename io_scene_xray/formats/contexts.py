@@ -179,3 +179,4 @@ class ExportAnimationOnlyContext(ExportContext):
     def __init__(self):
         super().__init__()
         self.bpy_arm_obj = None
+        self.fmt_ver = None
