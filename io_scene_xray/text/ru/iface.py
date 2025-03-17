@@ -23,6 +23,8 @@ translations_table = (
     (iface.move_xform, 'Переместить XForm'),
     (iface.idle, 'Анимация Простоя'),
     (iface.weapon_bone, 'Кость Оружия'),
+    (iface.marks_bone, 'Кость Меток'),
+    (iface.motion_marks, 'Метки Анимации'),
     (iface.settings, 'Настройки'),
     (iface.bake, 'Запекание'),
     (iface.use_custom_thresh, 'Использовать Настраеваемые Пороги'),

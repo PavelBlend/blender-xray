@@ -103,7 +103,6 @@ motion_no_bone = 'Bone is not found'
 motion_bone_replaced = 'Bone\'s reference will be replaced'
 motion_rotation_mode = 'Bone has a rotation mode different from ZXY'
 motion_to_stepped = 'Motion shape converted to STEPPED'
-motion_markers = 'Markers are not supported yet'
 
 # envelope
 envelope_behaviors_replaced = 'Different behaviors, one will be replaced with another'
