@@ -88,7 +88,9 @@ def _create_export_data():
     motion = obj.xray.motions_collection.add()
     motion.name = act.name
 
-    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    tests.utils.set_active_object(obj)
+    tests.utils.select_object(obj)
 
     for bone in obj.pose.bones:
         data_path = 'pose.bones["{}"]'.format(bone.name)
