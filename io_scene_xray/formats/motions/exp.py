@@ -34,7 +34,7 @@ def export_motion_marks(arm, action, writer, frame_start, frame_end, fps):
             intervals = []
             mark_name = mark_item.mark
             prop = m_bone.get(mark_name)
-            if prop is not None and prop not in proccessed:
+            if prop is not None and mark_name not in proccessed:
                 data_path = 'pose.bones["{0}"]["{1}"]'.format(
                     m_bone.name,
                     mark_name
@@ -56,7 +56,7 @@ def export_motion_marks(arm, action, writer, frame_start, frame_end, fps):
                             is_first = False
                     if len(intervals) % 2:
                         intervals.append(end / fps)
-                proccessed.add(prop)
+                proccessed.add(mark_name)
             motion_marks.append((mark_name, intervals))
 
     # write motion marks
