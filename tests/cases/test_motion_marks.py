@@ -7,7 +7,7 @@ import re
 
 class TestMotionMarks(tests.utils.XRayTestCase):
 
-    def test_object_marks_export(self):
+    def test_marks_export(self):
         # Arrange
         _create_export_data()
 
@@ -39,6 +39,42 @@ class TestMotionMarks(tests.utils.XRayTestCase):
             'tobj.ogf',
             'tobj.omf'
         })
+
+    def test_marks_import(self):
+        # Act
+        bpy.ops.xray_import.object(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt_marks.object'}],
+            fmt_version='cscop',
+            import_motions=True
+        )
+        bpy.ops.xray_import.ogf(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt_marks.ogf'}],
+            import_motions=True
+        )
+
+        # Assert
+        object_act = bpy.data.actions['test_action_object']
+        ogf_act = bpy.data.actions['test_action_ogf']
+
+        mark_names = ('Left', 'Right')
+
+        for act in (object_act, ogf_act):
+            xray = act.xray
+
+            self.assertEqual(xray.marks_bone, 'root_bone')
+            self.assertEqual(len(xray.marks_collection), 2)
+
+            for mark_name in mark_names:
+                has_mark_fcurve = False
+                for fcurve in act.fcurves:
+                    data_path = 'pose.bones["root_bone"]["{}"]'.format(mark_name)
+                    if fcurve.data_path == data_path:
+                        has_mark_fcurve = True
+                        self.assertEqual(bool(len(fcurve.keyframe_points)), True)
+
+                self.assertEqual(has_mark_fcurve, True)
 
 
 def _create_export_data():
