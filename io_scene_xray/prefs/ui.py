@@ -340,6 +340,12 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'omf_export_fmt_ver',
+            lay_type='ROW'
+        )
         row = box.row()
         row.label(text='Export Mode:')
         row.prop(prefs, 'omf_export_mode', expand=True)

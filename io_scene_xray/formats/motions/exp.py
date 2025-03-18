@@ -20,6 +20,58 @@ def convert_curve_to_keys(curve, fps):
         yield interp.KeyFrame(frame / fps, value, interp.Shape.STEPPED)
 
 
+def export_motion_marks(arm, action, writer, frame_start, frame_end, fps):
+    xray = action.xray
+    m_bone = arm.pose.bones.get(xray.marks_bone)
+    motion_marks = []
+    if m_bone:
+        fcurves = {
+            fcurve.data_path: fcurve
+            for fcurve in action.fcurves
+        }
+        proccessed = set()
+        for mark_item in xray.marks_collection:
+            intervals = []
+            mark_name = mark_item.mark
+            prop = m_bone.get(mark_name)
+            if prop is not None and prop not in proccessed:
+                data_path = 'pose.bones["{0}"]["{1}"]'.format(
+                    m_bone.name,
+                    mark_name
+                )
+                fcurve = fcurves.get(data_path, None)
+                if fcurve:
+                    is_first = False
+                    start = int(frame_start)
+                    end = int(frame_end) + 1
+                    for frame in range(start, end):
+                        val = fcurve.evaluate(frame)
+                        if val > 0.0:
+                            if not is_first:
+                                intervals.append(frame / fps)
+                            is_first = True
+                        else:
+                            if is_first:
+                                intervals.append(frame / fps)
+                            is_first = False
+                    if len(intervals) % 2:
+                        intervals.append(end / fps)
+                proccessed.add(prop)
+            motion_marks.append((mark_name, intervals))
+
+    # write motion marks
+    marks_count = len(motion_marks)
+    writer.putf('<I', marks_count)
+    for mark_name, intervals in motion_marks:
+        writer.puts_rn(mark_name)
+        interval_count = len(intervals) // 2
+        writer.putf('<I', interval_count)
+        for index in range(interval_count):
+            first = intervals[index * 2]
+            second = intervals[index * 2 + 1]
+            writer.putf('<2f', first, second)
+
+
 def _export_motion_data(
         writer,
         action,
@@ -144,54 +196,14 @@ def _export_motion_data(
 
     # motion marks
     if ver == const.FORMAT_VERSION_7:
-        m_bone = armature.pose.bones.get(xray.marks_bone)
-        motion_marks = []
-        if m_bone:
-            fcurves = {
-                fcurve.data_path: fcurve
-                for fcurve in action.fcurves
-            }
-            proccessed = set()
-            for mark_item in xray.marks_collection:
-                intervals = []
-                mark_name = mark_item.mark
-                prop = m_bone.get(mark_name)
-                if prop is not None and prop not in proccessed:
-                    data_path = 'pose.bones["{0}"]["{1}"]'.format(
-                        m_bone.name,
-                        mark_name
-                    )
-                    fcurve = fcurves.get(data_path, None)
-                    if fcurve:
-                        is_first = False
-                        start = int(frame_start)
-                        end = int(frame_end) + 1
-                        for frame in range(start, end):
-                            val = fcurve.evaluate(frame)
-                            if val > 0.0:
-                                if not is_first:
-                                    intervals.append(frame / fps)
-                                is_first = True
-                            else:
-                                if is_first:
-                                    intervals.append(frame / fps)
-                                is_first = False
-                        if len(intervals) % 2:
-                            intervals.append(end / fps)
-                    proccessed.add(prop)
-                motion_marks.append((mark_name, intervals))
-
-        # write motion marks
-        marks_count = len(motion_marks)
-        writer.putf('<I', marks_count)
-        for mark_name, intervals in motion_marks:
-            writer.puts_rn(mark_name)
-            interval_count = len(intervals) // 2
-            writer.putf('<I', interval_count)
-            for index in range(interval_count):
-                first = intervals[index * 2]
-                second = intervals[index * 2 + 1]
-                writer.putf('<2f', first, second)
+        export_motion_marks(
+            armature,
+            action,
+            writer,
+            frame_start,
+            frame_end,
+            fps
+        )
 
 
 def _bake_motion_data(action, armature):

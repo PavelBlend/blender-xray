@@ -309,6 +309,7 @@ class XRAY_OT_export_omf_file(
     )
 
     # export properties
+    fmt_ver = ie.PropSDKVersion()
     export_mode = ie.prop_omf_export_mode()
     export_motions = ie.PropObjectMotionsExport()
     export_bone_parts = ie.prop_export_bone_parts()
@@ -322,10 +323,14 @@ class XRAY_OT_export_omf_file(
 
         layout = self.layout
 
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
+
         layout.label(text='Export Mode:')
         layout.prop(self, 'export_mode', expand=True)
 
-        layout.prop(self, 'high_quality')
+        row = layout.row()
+        row.active = self.fmt_ver == 'cscop'
+        row.prop(self, 'high_quality')
 
         col = layout.column()
         col.active = not self.export_mode in ('OVERWRITE', 'ADD')
@@ -352,10 +357,11 @@ class XRAY_OT_export_omf_file(
 
         exp_ctx.bpy_arm_obj = obj
         exp_ctx.filepath = self.filepath
+        exp_ctx.fmt_ver = self.fmt_ver
         exp_ctx.export_mode = self.export_mode
         exp_ctx.export_motions = self.export_motions
         exp_ctx.export_bone_parts = self.export_bone_parts
-        exp_ctx.high_quality = self.high_quality
+        exp_ctx.high_quality = self.high_quality and self.fmt_ver == 'cscop'
 
         try:
             exp.export_omf_file(exp_ctx)
@@ -371,6 +377,7 @@ class XRAY_OT_export_omf_file(
     def invoke(self, context, event):    # pragma: no cover
         # set default settings
         pref = utils.version.get_preferences()
+        self.fmt_ver = pref.omf_export_fmt_ver
         self.export_mode = pref.omf_export_mode
         self.export_bone_parts = pref.omf_export_bone_parts
         self.export_motions = pref.omf_motions_export
@@ -400,6 +407,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
     directory = bpy.props.StringProperty(subtype='FILE_PATH')
 
     # export properties
+    fmt_ver = ie.PropSDKVersion()
     high_quality = ie.prop_omf_high_quality()
 
     # system properties
@@ -409,7 +417,11 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
 
         layout = self.layout
-        layout.prop(self, 'high_quality')
+
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
+        row = layout.row()
+        row.active = self.fmt_ver == 'cscop'
+        row.prop(self, 'high_quality')
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -422,24 +434,25 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         if not arm_objs:
             return {'CANCELLED'}
 
-        export_context = ExportOmfContext()
+        exp_ctx = ExportOmfContext()
 
-        export_context.high_quality = self.high_quality
-        export_context.export_mode = 'OVERWRITE'
+        exp_ctx.fmt_ver = self.fmt_ver
+        exp_ctx.high_quality = self.high_quality and self.fmt_ver == 'cscop'
+        exp_ctx.export_mode = 'OVERWRITE'
 
         for obj in arm_objs:
             name = utils.ie.add_file_ext(obj.name, OMF_EXT)
             filepath = os.path.join(self.directory, name)
 
-            export_context.bpy_arm_obj = obj
-            export_context.filepath = filepath
+            exp_ctx.bpy_arm_obj = obj
+            exp_ctx.filepath = filepath
 
             try:
-                exp.export_omf_file(export_context)
+                exp.export_omf_file(exp_ctx)
             except log.AppError as err:
-                export_context.errors.append(err)
+                exp_ctx.errors.append(err)
 
-        for err in export_context.errors:
+        for err in exp_ctx.errors:
             log.err(err)
 
         return {'FINISHED'}
@@ -449,6 +462,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         pref = utils.version.get_preferences()
 
         self.high_quality = pref.omf_high_quality
+        self.fmt_ver = pref.omf_export_fmt_ver
 
         arm_objs = get_arm_objs(self, context)
         if not arm_objs:

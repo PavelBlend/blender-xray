@@ -215,6 +215,7 @@ prefs_props = {
     'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
 
     # omf export props
+    'omf_export_fmt_ver': formats.ie.PropSDKVersion(),
     'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
     'omf_export_mode': formats.ie.prop_omf_export_mode(),
     'omf_motions_export': formats.ie.PropObjectMotionsExport(),
