@@ -46,7 +46,7 @@ def export_motion_marks(arm, action, writer, frame_start, frame_end, fps):
                     end = int(frame_end) + 1
                     for frame in range(start, end):
                         val = fcurve.evaluate(frame)
-                        if val > 0.0:
+                        if bool(val):
                             if not is_first:
                                 intervals.append(frame / fps)
                             is_first = True
