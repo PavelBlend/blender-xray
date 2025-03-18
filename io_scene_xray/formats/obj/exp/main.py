@@ -238,6 +238,10 @@ class ObjectExporter:
                 # create motions context
                 motion_ctx = contexts.ExportAnimationOnlyContext()
                 motion_ctx.bpy_arm_obj = self.arm_obj
+                if self.context.soc_sgroups:
+                    motion_ctx.fmt_ver = 'soc'
+                else:
+                    motion_ctx.fmt_ver = 'cscop'
 
                 # export motions
                 writer = rw.write.PackedWriter()

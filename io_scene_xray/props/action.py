@@ -9,6 +9,61 @@ from .. import utils
 _SPECIAL = 0xffff
 
 
+def _get_mark_items(self, context):
+    custom_props = []
+
+    obj = context.active_object
+    if obj and obj.type == 'ARMATURE':
+        anim_data = obj.animation_data
+        if anim_data:
+            act = anim_data.action
+        else:
+            act_name = obj.get('xray_current_action')
+            if act_name:
+                act = bpy.data.actions.get(act_name)
+
+        if act:
+            bone_name = act.xray.marks_bone
+            if bone_name:
+                bone = obj.pose.bones.get(bone_name)
+                if bone:
+                    custom_props = [
+                        (key, key, '')
+                        for key in bone.keys()
+                    ]
+
+    return custom_props
+
+
+class MotionMark(bpy.types.PropertyGroup):
+    mark = bpy.props.EnumProperty(items=_get_mark_items)
+
+
+class XRAY_UL_motion_marks_list_item(bpy.types.UIList):
+
+    def draw_item(
+            self,
+            context,
+            layout,
+            data,
+            item,
+            icon,
+            active_data,
+            active_propname,
+            index
+        ):    # pragma: no cover
+
+        if data.marks_collection_index == index:
+            icon = 'CHECKBOX_HLT'
+        else:
+            icon = 'CHECKBOX_DEHLT'
+
+        row = layout.row()
+
+        row.label(text='', icon=icon)
+        row.prop(item, 'mark', text='')
+
+
 def _get_collection_item_attr(collection, index, name, special):
     if index == special:
         return ''
@@ -126,6 +181,11 @@ class XRayActionProps(bpy.types.PropertyGroup):
         options={'SKIP_SAVE'}
     )
 
+    # motion marks
+    marks_bone = bpy.props.StringProperty()
+    marks_collection = bpy.props.CollectionProperty(type=MotionMark)
+    marks_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
+
     # auto bake
     autobake = bpy.props.EnumProperty(
         name='Auto Bake',
@@ -183,9 +243,12 @@ class XRayActionProps(bpy.types.PropertyGroup):
         return False
 
 
+classes = (MotionMark, XRayActionProps, XRAY_UL_motion_marks_list_item)
+
+
 def register():
-    utils.version.register_classes(XRayActionProps)
+    utils.version.register_classes(classes)
 
 
 def unregister():
-    utils.version.unregister_prop_groups(XRayActionProps)
+    utils.version.unregister_prop_groups(classes)

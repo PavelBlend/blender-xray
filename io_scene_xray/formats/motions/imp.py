@@ -15,6 +15,51 @@ from ... import rw
 MOTIONS_FILTER_ALL = lambda name: True
 
 
+def import_motion_marks(bpy_armature, act, reader, fps, start_frame):
+    # seach marks bone
+    m_bone = None
+    for bone in bpy_armature.pose.bones:
+        if not bone.parent:
+            m_bone = bone
+            break
+
+    bpy_armature['xray_current_action'] = act.name
+    xray = act.xray
+
+    # import motion marks
+    if m_bone:
+        xray.marks_bone = m_bone.name
+        data_path = 'pose.bones["{}"]'.format(m_bone.name)
+        marks_count = reader.uint32()
+
+        for mark_index in range(marks_count):
+            mark_name = reader.gets_rn()
+            interval_count = reader.uint32()
+
+            m_bone[mark_name] = 0.0
+            mark_item = xray.marks_collection.add()
+            mark_item.mark = mark_name
+
+            # import intervals
+            keyframes = []
+            fcurve = act.fcurves.new(
+                '{0}["{1}"]'.format(data_path, mark_name),
+                action_group=m_bone.name
+            )
+            keyframes.extend((start_frame / fps, 0.0))
+            for interval_index in range(interval_count):
+                first, second = reader.getf('2f')
+                keyframes.extend((first * fps, 1.0, second * fps, 0.0))
+            interps = ['CONSTANT'] * (len(keyframes) // 2)
+            utils.action.insert_keyframes_for_single_curve(
+                keyframes,
+                fcurve,
+                interps=interps
+            )
+
+    del bpy_armature['xray_current_action']
+
+
 def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = rw.read.FastBytes.short_at(data, ptr - 2)
@@ -301,11 +346,11 @@ def import_motion(
             motion=motion_name, bone=bone_name,
             keys_count=keys_count
         )
+
+    # motion marks
     if ver >= const.FORMAT_VERSION_7:
-        for _bone_idx in range(reader.uint32()):
-            name = reader.gets_rn()
-            reader.skip((4 + 4) * reader.uint32())
-            log.warn(text.warn.motion_markers, name=name)
+        import_motion_marks(bpy_armature, act, reader, fps, start_frame)
+
     return act
 
 

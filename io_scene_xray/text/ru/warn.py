@@ -112,7 +112,6 @@ translations_table = (
     (warn.motion_bone_replaced, 'Ссылка на кость была изменена'),
     (warn.motion_rotation_mode, 'Кость имеет режим вращения отличающийся от ZXY'),
     (warn.motion_to_stepped, 'Формы анимационных ключей были сконвертированы в STEPPED'),
-    (warn.motion_markers, 'Маркеры пока не поддерживаются'),
 
     # envelope
     (warn.envelope_behaviors_replaced, 'Анимационные кривые имеют различные типы экстраполяций для начала и конца, один будет заменён другим'),

@@ -20,13 +20,66 @@ def convert_curve_to_keys(curve, fps):
         yield interp.KeyFrame(frame / fps, value, interp.Shape.STEPPED)
 
 
+def export_motion_marks(arm, action, writer, frame_start, frame_end, fps):
+    xray = action.xray
+    m_bone = arm.pose.bones.get(xray.marks_bone)
+    motion_marks = []
+    if m_bone:
+        fcurves = {
+            fcurve.data_path: fcurve
+            for fcurve in action.fcurves
+        }
+        proccessed = set()
+        for mark_item in xray.marks_collection:
+            intervals = []
+            mark_name = mark_item.mark
+            prop = m_bone.get(mark_name)
+            if prop is not None and mark_name not in proccessed:
+                data_path = 'pose.bones["{0}"]["{1}"]'.format(
+                    m_bone.name,
+                    mark_name
+                )
+                fcurve = fcurves.get(data_path, None)
+                if fcurve:
+                    is_first = False
+                    start = int(frame_start)
+                    end = int(frame_end) + 1
+                    for frame in range(start, end):
+                        val = fcurve.evaluate(frame)
+                        if bool(val):
+                            if not is_first:
+                                intervals.append(frame / fps)
+                            is_first = True
+                        else:
+                            if is_first:
+                                intervals.append(frame / fps)
+                            is_first = False
+                    if len(intervals) % 2:
+                        intervals.append(end / fps)
+                proccessed.add(mark_name)
+            motion_marks.append((mark_name, intervals))
+
+    # write motion marks
+    marks_count = len(motion_marks)
+    writer.putf('<I', marks_count)
+    for mark_name, intervals in motion_marks:
+        writer.puts_rn(mark_name)
+        interval_count = len(intervals) // 2
+        writer.putf('<I', interval_count)
+        for index in range(interval_count):
+            first = intervals[index * 2]
+            second = intervals[index * 2 + 1]
+            writer.putf('<2f', first, second)
+
+
 def _export_motion_data(
         writer,
         action,
         bones_anims,
         armature,
         root_bone_names,
-        root_obj
+        root_obj,
+        fmt_ver
     ):
 
     xray = action.xray
@@ -44,7 +97,10 @@ def _export_motion_data(
     fps = xray.fps
     bones_count = len(bones_anims)
 
-    ver = const.FORMAT_VERSION_6
+    if fmt_ver == 'cscop':
+        ver = const.FORMAT_VERSION_7
+    else:
+        ver = const.FORMAT_VERSION_6
 
     # write motion parameters
     writer.puts(motion_name)
@@ -138,6 +194,17 @@ def _export_motion_data(
             writer.putf('<H', keyframes_count)
             writer.putp(keyframes_writer)
 
+    # motion marks
+    if ver == const.FORMAT_VERSION_7:
+        export_motion_marks(
+            armature,
+            action,
+            writer,
+            frame_start,
+            frame_end,
+            fps
+        )
+
 
 def _bake_motion_data(action, armature):
     exportable_bones = _prepare_bones(armature)
@@ -202,11 +269,12 @@ def _prepare_bones(armature):
 
 
 @log.with_context('motion')
-def export_motion(writer, action, armature, root_obj):
+def export_motion(writer, action, context, root_obj):
     log.update(action=action.name)
 
     dep_obj = None
     old_action = None
+    armature = context.bpy_arm_obj
     dep_obj_name = armature.xray.dependency_object
     if dep_obj_name:
         dep_obj = bpy.data.objects.get(dep_obj_name)
@@ -229,7 +297,8 @@ def export_motion(writer, action, armature, root_obj):
         bones_anims,
         armature,
         root_bone_names,
-        root_obj
+        root_obj,
+        context.fmt_ver
     )
 
     if dep_obj:
@@ -239,8 +308,7 @@ def export_motion(writer, action, armature, root_obj):
 @utils.action.initial_state
 def export_motions(writer, actions, context, root_obj):
     motions_count = len(actions)
-    bpy_armature = context.bpy_arm_obj
     writer.putf('<I', motions_count)
 
     for action in actions:
-        export_motion(writer, action, bpy_armature, root_obj)
+        export_motion(writer, action, context, root_obj)

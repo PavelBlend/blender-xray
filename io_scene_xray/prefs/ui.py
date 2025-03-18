@@ -257,9 +257,19 @@ def draw_defaults(prefs):
         )
 
     elif prefs.defaults_category == 'SKLS':
+        # import
         box = layout.box()
         box.label(text='Import:')
         box.prop(prefs, 'add_to_motion_list')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'skl_export_fmt_ver',
+            lay_type='ROW'
+        )
 
     elif prefs.defaults_category == 'BONES':
         # import
@@ -330,6 +340,12 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'omf_export_fmt_ver',
+            lay_type='ROW'
+        )
         row = box.row()
         row.label(text='Export Mode:')
         row.prop(prefs, 'omf_export_mode', expand=True)

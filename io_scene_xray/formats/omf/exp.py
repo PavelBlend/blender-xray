@@ -269,8 +269,16 @@ def write_motion_params(context, writer, name, index, actions_table):
 
     # motion marks
     if context.params_ver == 4:
-        marks_count = 0
-        writer.putf('<I', marks_count)
+        frame_start, frame_end = action.frame_range
+        length = int(frame_end - frame_start + 1)
+        motions.exp.export_motion_marks(
+            context.bpy_arm_obj,
+            action,
+            writer,
+            0,    # frame start,
+            length,    # frame end,
+            30    # fps
+        )
 
 
 def write_motions_params(context, writer, motions_list, actions_table):
@@ -959,7 +967,7 @@ def export_omf_file(context):
 
     check_context(context)
 
-    if context.high_quality:
+    if context.fmt_ver == 'cscop':
         context.params_ver = 4
     else:
         context.params_ver = 3

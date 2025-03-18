@@ -178,6 +178,48 @@ class XRAY_PT_action(ui.base.XRayPanel):
                 toggle=True
             )
 
+        layout.separator()
+        _, box = ui.collapsible.draw(
+            layout,
+            'action:motion_marks',
+            '{} ({})'.format(
+                text.get_iface(text.iface.motion_marks),
+                len(data.marks_collection)
+            )
+        )
+
+        if box:
+
+            # motion marks bone
+            row = box.row()
+            row.label(text=text.get_iface(text.iface.marks_bone) + ':')
+            row.prop_search(
+                data,
+                'marks_bone',
+                obj.pose,
+                'bones',
+                text=''
+            )
+
+            # motion marks list
+            row = box.row()
+            row.template_list(
+                'XRAY_UL_motion_marks_list_item',
+                'name',
+                data,
+                'marks_collection',
+                data,
+                'marks_collection_index',
+                rows=4
+            )
+            col = row.column(align=True)
+            ui.list_helper.draw_list_ops(
+                col,
+                data,
+                'marks_collection',
+                'marks_collection_index'
+            )
+
         # *.skls bake settings
         layout.separator()
         self.draw_bake_props(layout, data, False)
