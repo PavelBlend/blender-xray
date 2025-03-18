@@ -4,13 +4,23 @@ from .... import utils
 
 
 @utils.stats.timer_stage
-def _import_motions(data, context, motions_params, bone_names, ver):
+def _import_motions(
+        data,
+        context,
+        motions_params,
+        bone_names,
+        ver,
+        mark_reader,
+        mark_offsets
+    ):
     utils.stats.stage('Motions')
     omf.imp.read_motions(
         data,
         context,
         motions_params,
         bone_names,
+        mark_reader,
+        mark_offsets,
         version=ver
     )
 
@@ -40,7 +50,7 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
     context.bpy_arm_obj = visual.arm_obj
 
     if params_data:
-        motions_params, bone_names = omf.imp.read_params(
+        params, bone_names, mark_reader, mark_offsets = omf.imp.read_params(
             params_data,
             context,
             param_chunk,
@@ -51,7 +61,9 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
             _import_motions(
                 motions_data,
                 context,
-                motions_params,
+                params,
                 bone_names,
-                ver
+                ver,
+                mark_reader,
+                mark_offsets
             )

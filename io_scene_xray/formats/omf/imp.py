@@ -129,7 +129,9 @@ def read_motion(
         context,
         motions_params,
         bone_names,
-        version
+        version,
+        mark_reader,
+        mark_offsets
     ):
 
     try:
@@ -332,11 +334,32 @@ def read_motion(
                 )
             )
 
+        # import motion marks
+        mark_offset = mark_offsets.get(name, None)
+        if mark_offset is not None:
+            mark_reader.set_offset(mark_offset)
+            motions.imp.import_motion_marks(
+                context.bpy_arm_obj,
+                act,
+                mark_reader,
+                30,    # fps
+                0    # start frame
+            )
+
     else:
         skip_motion(packed_reader, bone_names, length)
 
 
-def read_motions(data, context, motions_params, bone_names, version=2):
+def read_motions(
+        data,
+        context,
+        motions_params,
+        bone_names,
+        mark_reader,
+        mark_offsets,
+        version=2
+    ):
+
     chunked_reader = rw.read.ChunkedReader(data)
 
     count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
@@ -352,7 +375,9 @@ def read_motions(data, context, motions_params, bone_names, version=2):
             context,
             motions_params,
             bone_names,
-            version
+            version,
+            mark_reader,
+            mark_offsets
         )
 
 
@@ -424,6 +449,7 @@ def read_params(data, context, chunk, bones_indices={}):
     # read motions params
     motion_count = reader.getf('<H')[0]
     motions_params = MotionsParams()
+    mark_offsets = {}
 
     for motion_index in range(motion_count):
         motion_name = reader.gets()
@@ -437,12 +463,13 @@ def read_params(data, context, chunk, bones_indices={}):
         prm.speed, prm.power, prm.accrue, prm.falloff = reader.getf('<4f')
 
         if params_version == 4:
+            mark_offsets[motion_name] = reader.offset()
             read_motion_marks(reader)
 
         elif params_version == 0:
             b_no_loop = reader.getf('<B')[0]
 
-    return motions_params, bone_names
+    return motions_params, bone_names, reader, mark_offsets
 
 
 def read_main(data, context):
@@ -454,7 +481,7 @@ def read_main(data, context):
     # params
     params_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
     params_chunk = 1
-    motions_params, bone_names = read_params(
+    motions_params, bone_names, mark_reader, mark_offsets = read_params(
         params_data,
         context,
         params_chunk
@@ -463,7 +490,14 @@ def read_main(data, context):
     # motions
     motions_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
     if context.import_motions:
-        read_motions(motions_data, context, motions_params, bone_names)
+        read_motions(
+            motions_data,
+            context,
+            motions_params,
+            bone_names,
+            mark_reader,
+            mark_offsets
+        )
 
     for chunk_id, chunk_data in chunks.items():
         log.debug('Unknown OMF chunk: {}'.format(chunk_id))
