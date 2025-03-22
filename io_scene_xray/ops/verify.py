@@ -1,9 +1,15 @@
+# standart modules
+import os
+
 # blender modules
 import bpy
 import bmesh
 
 # addon modules
 from . import general
+from . import material
+from .. import rw
+from .. import formats
 from .. import utils
 from .. import text
 
@@ -223,9 +229,124 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
+class XRAY_OT_check_materials(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.check_materials'
+    bl_label = 'Check Material Parameters'
+    bl_description = 'Check the parameters of the materials for correctness'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mode = material.mode_prop
+
+    def draw(self, context):    # pragma: no cover
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
+    def _get_xr_data(self, prop):
+        # search read function
+        if prop == 'eshader_file':
+            fun = formats.xr.parse_shaders
+        elif prop == 'cshader_file':
+            fun = formats.xr.parse_shaders_xrlc
+        elif prop == 'gamemtl_file':
+            fun = formats.xr.parse_gamemtl
+        else:
+            raise BaseException('unsupported property')
+
+        # get file data
+        files = utils.ie.get_pref_paths(prop)
+        file_data = None
+        for file in files:
+            if os.path.exists(file):
+                file_data = rw.utils.read_file(file)
+                break
+
+        # read xr data
+        names = set()
+        if file_data:
+            for name, _, _ in fun(file_data):
+                names.add(name)
+
+        return names
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        # search *.xr files data
+        shader_names = self._get_xr_data('eshader_file')
+        compile_names = self._get_xr_data('cshader_file')
+        gamemtl_names = self._get_xr_data('gamemtl_file')
+
+        # search materials
+        mats = material.get_materials(context, self.mode)
+
+        # verify material parameters
+        logs = []
+        bad_mats_count = 0
+        logs.append('Incorrect Materials:\n\n')
+
+        # sort materials
+        mat_names = [mat.name for mat in mats]
+        mat_names.sort()
+        mats = {mat.name: mat for mat in mats}
+
+        # search bad materials
+        for mat_name in mat_names:
+            mat = mats[mat_name]
+            xray = mat.xray
+            has_err = False
+            msg = '    Material: "{}":\n'.format(mat.name)
+
+            if xray.eshader not in shader_names:
+                msg += '        Engine Shader: "{}"\n'.format(xray.eshader)
+                has_err = True
+
+            if xray.cshader not in compile_names:
+                msg += '        Compile Shader: "{}"\n'.format(xray.cshader)
+                has_err = True
+
+            if xray.gamemtl not in gamemtl_names:
+                msg += '        Game Material: "{}"\n'.format(xray.gamemtl)
+                has_err = True
+
+            if has_err:
+                msg += '\n'
+                logs.append(msg)
+                bad_mats_count += 1
+
+        # create log
+        report_msg = text.get_tip(text.warn.incorrect_mats)
+        if bad_mats_count:
+            LOG_FILE_NAME = 'log'
+            report_msg = '{0} ({1} "{2}")'.format(
+                report_msg,
+                text.get_tip(text.warn.see_log),
+                LOG_FILE_NAME
+            )
+
+            text_log = bpy.data.texts.get(LOG_FILE_NAME)
+            if not text_log:
+                text_log = bpy.data.texts.new(LOG_FILE_NAME)
+                text_log.user_clear()
+            text_log.from_string(''.join(logs))
+
+        # report
+        self.report(
+            {'INFO'},
+            report_msg + ': {}'.format(bad_mats_count)
+        )
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 classes = (
     XRAY_OT_verify_uv,
-    XRAY_OT_check_invalid_faces
+    XRAY_OT_check_invalid_faces,
+    XRAY_OT_check_materials
 )
 
 

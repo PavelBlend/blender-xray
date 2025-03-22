@@ -131,6 +131,8 @@ translations_table = (
     (warn.incorrect_uv_objs_count, 'Выделено объектов с некорректной uv-картой'),
     (warn.invalid_face_objs_count, 'Выделено объектов с invalid face'),
     (warn.invalid_sg_objs_count, 'Выделено объектов с некорректным сглаживанием'),
+    (warn.incorrect_mats, 'Найдено материалов с некорректными параметрами'),
+    (warn.see_log, 'см. лог'),
 
     # others operators
     (warn.added_motions, 'Добавлено анимаций'),

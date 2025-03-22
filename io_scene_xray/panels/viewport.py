@@ -303,6 +303,10 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
             ops.invalid_sg.XRAY_OT_check_sg_incompatibility.bl_idname,
             icon=utils.version.get_icon('MOD_EDGESPLIT')
         )
+        col.operator(
+            ops.verify.XRAY_OT_check_materials.bl_idname,
+            icon=utils.version.get_icon('MATERIAL')
+        )
 
 
 class XRAY_PT_omf_editor(ui.base.XRayPanel):
