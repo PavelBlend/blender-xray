@@ -307,6 +307,9 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
             ops.verify.XRAY_OT_check_materials.bl_idname,
             icon=utils.version.get_icon('MATERIAL')
         )
+        col.operator(
+            ops.mesh.XRAY_OT_sel_verts_by_weights.bl_idname,
+        )
 
 
 class XRAY_PT_omf_editor(ui.base.XRayPanel):
