@@ -145,8 +145,7 @@ class XRAY_OT_sel_verts_by_weights(utils.ie.BaseOperator):
         column.label(text='Type:')
         column.prop(self, 'sel_type', expand=True)
 
-        column.label(text='Number of Weights:')
-        column.prop(self, 'weights_count', expand=True)
+        layout.prop(self, 'weights_count', expand=True)
 
     @utils.set_cursor_state
     def execute(self, context):
