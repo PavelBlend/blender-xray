@@ -1,6 +1,5 @@
 import bpy
 import tests
-import io_scene_xray
 
 
 class TestOpsProps(tests.utils.XRayTestCase):
