@@ -7,6 +7,7 @@ from .. import utils
 
 def search_objects(self, context):
     objects = []
+
     if self.mode == 'ACTIVE':
         if context.active_object:
             objects.append(context.active_object)
@@ -61,6 +62,13 @@ def remove_end_line(text):
 
 def get_user_data(obj):
     return obj.xray.userdata
+
+
+def get_motions(obj):
+    motions = []
+    for motion in obj.xray.motions_collection:
+        motions.append(motion.name)
+    return '\n'.join(motions)
 
 
 def get_motion_refs(obj):
@@ -122,18 +130,74 @@ def search_value(self, context, prop_name, prop_fun, text_fun):
     return value
 
 
-mode_items = (
-    ('ACTIVE', 'Active Object', ''),
-    ('SELECTED', 'Selected Objects', ''),
-    ('ALL', 'All Objects', '')
-)
+def _get_mode_prop():
+    return bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ACTIVE', 'Active Object', ''),
+            ('SELECTED', 'Selected Objects', ''),
+            ('ALL', 'All Objects', '')
+        ),
+        default='SELECTED'
+    )
 
 
-class XRAY_OT_change_userdata(utils.ie.BaseOperator):
+class _BasePropsOperator(utils.ie.BaseOperator):
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def _draw_mode(self):    # pragma: no cover
+        layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
+    def _draw_edit(self):    # pragma: no cover
+        layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Edit:')
+        column.prop(self, 'edit', expand=True)
+
+    def _draw_value(self):    # pragma: no cover
+        layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Value:')
+        column.prop(self, 'value', expand=True)
+
+        row = utils.version.layout_split(layout, 0.2)
+
+        if self.value == 'REPLACE':
+            row.label(text='String:')
+            row.prop(self, 'string', text='')
+
+        elif self.value == 'OBJECT':
+            row.label(text='Object:')
+            row.prop_search(self, 'obj', bpy.data, 'objects', text='')
+
+        elif self.value == 'ACTIVE':
+            obj = bpy.context.active_object
+            if obj:
+                layout.label(text='Active Object: "{}"'.format(obj.name))
+            else:
+                layout.label(text='No active object!')
+
+        elif self.value == 'TEXT':
+            row.label(text='Text:')
+            row.prop_search(self, 'text', bpy.data, 'texts', text='')
+
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+class XRAY_OT_change_userdata(_BasePropsOperator):
     bl_idname = 'io_scene_xray.change_userdata'
     bl_label = 'Change Userdata'
     bl_options = {'REGISTER', 'UNDO'}
 
+    mode = _get_mode_prop()
     value = bpy.props.EnumProperty(
         name='Value',
         items=(
@@ -145,46 +209,13 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         ),
         default='REPLACE'
     )
-    mode = bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED'
-    )
-    userdata = bpy.props.StringProperty(name='Userdata')
+    string = bpy.props.StringProperty(name='Userdata')
     obj = bpy.props.StringProperty(name='Object')
     text = bpy.props.StringProperty(name='Text')
 
     def draw(self, context):    # pragma: no cover
-        layout = self.layout
-
-        column = layout.column(align=True)
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
-
-        column = layout.column(align=True)
-        column.label(text='Value:')
-        column.prop(self, 'value', expand=True)
-
-        row = utils.version.layout_split(layout, 0.2)
-
-        if self.value == 'REPLACE':
-            row.label(text='String:')
-            row.prop(self, 'userdata', text='')
-
-        elif self.value == 'OBJECT':
-            row.label(text='Object:')
-            row.prop_search(self, 'obj', bpy.data, 'objects', text='')
-
-        elif self.value == 'ACTIVE':
-            obj = context.active_object
-            if obj:
-                layout.label(text='Active Object: "{}"'.format(obj.name))
-            else:
-                layout.label(text='No active object!')
-
-        elif self.value == 'TEXT':
-            row.label(text='Text:')
-            row.prop_search(self, 'text', bpy.data, 'texts', text='')
+        self._draw_mode()
+        self._draw_value()
 
     def execute(self, context):
         result = search_objects(self, context)
@@ -196,7 +227,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         result = search_value(
             self,
             context,
-            'userdata',
+            'string',
             get_user_data,
             join_text_lines
         )
@@ -213,10 +244,6 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 value_items = (
     ('REPLACE', 'Replace', 'Set custom value for LOD reference.'),
@@ -227,56 +254,24 @@ value_items = (
 )
 
 
-class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
+class XRAY_OT_change_lod_ref(_BasePropsOperator):
     bl_idname = 'io_scene_xray.change_lod_ref'
     bl_label = 'Change LOD Reference'
     bl_options = {'REGISTER', 'UNDO'}
 
+    mode = _get_mode_prop()
     value = bpy.props.EnumProperty(
         name='Value',
         items=value_items,
         default='REPLACE'
     )
-    mode = bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED'
-    )
-    lod_ref = bpy.props.StringProperty(name='LOD Reference')
+    string = bpy.props.StringProperty(name='LOD Reference')
     obj = bpy.props.StringProperty(name='Object')
     text = bpy.props.StringProperty(name='Text')
 
     def draw(self, context):    # pragma: no cover
-        layout = self.layout
-
-        column = layout.column(align=True)
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
-
-        column = layout.column(align=True)
-        column.label(text='Value:')
-        column.prop(self, 'value', expand=True)
-
-        row = utils.version.layout_split(layout, 0.2)
-
-        if self.value == 'REPLACE':
-            row.label(text='String:')
-            row.prop(self, 'lod_ref', text='')
-
-        elif self.value == 'OBJECT':
-            row.label(text='Object:')
-            row.prop_search(self, 'obj', bpy.data, 'objects', text='')
-
-        elif self.value == 'ACTIVE':
-            obj = context.active_object
-            if obj:
-                layout.label(text='Active Object: "{}"'.format(obj.name))
-            else:
-                layout.label(text='No active object!')
-
-        elif self.value == 'TEXT':
-            row.label(text='Text:')
-            row.prop_search(self, 'text', bpy.data, 'texts', text='')
+        self._draw_mode()
+        self._draw_value()
 
     def execute(self, context):
         result = search_objects(self, context)
@@ -288,7 +283,7 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         result = search_value(
             self,
             context,
-            'lod_ref',
+            'string',
             get_lod_ref,
             remove_end_line
         )
@@ -305,10 +300,6 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 value_items = (
     ('REPLACE', 'Replace', 'Set custom value for motion refs.'),
@@ -319,12 +310,13 @@ value_items = (
 )
 
 
-class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.change_motion_refs'
-    bl_label = 'Change Motion References'
+class XRAY_OT_change_motions(_BasePropsOperator):
+    bl_idname = 'io_scene_xray.change_motions'
+    bl_label = 'Change Motions'
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.EnumProperty(
+    mode = _get_mode_prop()
+    edit = bpy.props.EnumProperty(
         name='Mode',
         items=(
             ('ADD', 'Add', ''),
@@ -337,46 +329,14 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         items=value_items,
         default='REPLACE'
     )
-    mode = bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED'
-    )
-    motion_refs = bpy.props.StringProperty(name='Motion References')
+    string = bpy.props.StringProperty(name='Motions')
     obj = bpy.props.StringProperty(name='Object')
     text = bpy.props.StringProperty(name='Text')
 
     def draw(self, context):    # pragma: no cover
-        layout = self.layout
-
-        column = layout.column(align=True)
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
-
-        column = layout.column(align=True)
-        column.label(text='Value:')
-        column.prop(self, 'value', expand=True)
-
-        row = utils.version.layout_split(layout, 0.2)
-
-        if self.value == 'REPLACE':
-            row.label(text='String:')
-            row.prop(self, 'motion_refs', text='')
-
-        elif self.value == 'OBJECT':
-            row.label(text='Object:')
-            row.prop_search(self, 'obj', bpy.data, 'objects', text='')
-
-        elif self.value == 'ACTIVE':
-            obj = context.active_object
-            if obj:
-                layout.label(text='Active Object: "{}"'.format(obj.name))
-            else:
-                layout.label(text='No active object!')
-
-        elif self.value == 'TEXT':
-            row.label(text='Text:')
-            row.prop_search(self, 'text', bpy.data, 'texts', text='')
+        self._draw_mode()
+        self._draw_edit()
+        self._draw_value()
 
     def execute(self, context):
         result = search_objects(self, context)
@@ -388,21 +348,87 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         result = search_value(
             self,
             context,
-            'motion_refs',
+            'string',
+            get_motions,
+            join_text_lines
+        )
+        if result == {'FINISHED'}:
+            return result
+
+        motions = result.split('\n')
+
+        # set value
+        for obj in root_objs:
+            coll = obj.xray.motions_collection
+            if self.edit == 'OVERWRITE':
+                coll.clear()
+            if self.value == 'CLEAR':
+                coll.clear()
+                continue
+            for motion in motions:
+                if not motion:
+                    continue
+                if motion in coll:
+                    continue
+                elem = coll.add()
+                elem.name = motion
+
+        utils.draw.redraw_areas()
+        self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
+        return {'FINISHED'}
+
+
+class XRAY_OT_change_motion_refs(_BasePropsOperator):
+    bl_idname = 'io_scene_xray.change_motion_refs'
+    bl_label = 'Change Motion References'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mode = _get_mode_prop()
+    edit = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ADD', 'Add', ''),
+            ('OVERWRITE', 'Overwrite', '')
+        ),
+        default='ADD'
+    )
+    value = bpy.props.EnumProperty(
+        name='Value',
+        items=value_items,
+        default='REPLACE'
+    )
+    string = bpy.props.StringProperty(name='Motion References')
+    obj = bpy.props.StringProperty(name='Object')
+    text = bpy.props.StringProperty(name='Text')
+
+    def draw(self, context):    # pragma: no cover
+        self._draw_mode()
+        self._draw_edit()
+        self._draw_value()
+
+    def execute(self, context):
+        result = search_objects(self, context)
+        if result == {'FINISHED'}:
+            return result
+
+        root_objs = result
+
+        result = search_value(
+            self,
+            context,
+            'string',
             get_motion_refs,
             join_text_lines
         )
         if result == {'FINISHED'}:
             return result
 
-        motion_refs = result
-
-        motion_refs = motion_refs.split('\n')
+        motion_refs = result.split('\n')
 
         # set value
         for obj in root_objs:
             refs = obj.xray.motionrefs_collection
-            if self.mode == 'OVERWRITE':
+            if self.edit == 'OVERWRITE':
                 refs.clear()
             if self.value == 'CLEAR':
                 refs.clear()
@@ -419,16 +445,13 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
 
-
-class XRAY_OT_change_object_type(utils.ie.BaseOperator):
+class XRAY_OT_change_object_type(_BasePropsOperator):
     bl_idname = 'io_scene_xray.change_object_type'
     bl_label = 'Change Object Type'
     bl_options = {'REGISTER', 'UNDO'}
 
+    mode = _get_mode_prop()
     obj_type = bpy.props.EnumProperty(
         name='Type',
         items=(
@@ -441,18 +464,11 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         ),
         default='st'
     )
-    mode = bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED'
-    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
 
-        column = layout.column(align=True)
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
+        self._draw_mode()
 
         column = layout.column(align=True)
         column.label(text='Type:')
@@ -472,29 +488,19 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
 
-
-class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
+class XRAY_OT_change_hq_export(_BasePropsOperator):
     bl_idname = 'io_scene_xray.change_hq_export'
     bl_label = 'Change HQ Export'
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED'
-    )
+    mode = _get_mode_prop()
     hq_export = bpy.props.BoolProperty(name='HQ Export', default=False)
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
 
-        column = layout.column(align=True)
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
+        self._draw_mode()
 
         layout.prop(self, 'hq_export')
 
@@ -512,16 +518,13 @@ class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 classes = (
     XRAY_OT_change_object_type,
     XRAY_OT_change_hq_export,
     XRAY_OT_change_userdata,
     XRAY_OT_change_lod_ref,
+    XRAY_OT_change_motions,
     XRAY_OT_change_motion_refs
 )
 
