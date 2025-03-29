@@ -1,3 +1,4 @@
+import re
 import bpy
 import tests
 
@@ -8,19 +9,28 @@ class TestOpsProps(tests.utils.XRayTestCase):
         tests.utils.remove_all_objects()
 
         # tests without objects
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ACTIVE', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('No active object!'))
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='SELECTED', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('No selected objects!'))
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ALL', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('Scene has no objects!'))
 
         # Arrange
         active, selected = self._create_objects()
 
-        self.default = {}
-        for obj in bpy.data.objects:
-            self.default[obj.name] = obj.xray.flags_simple
+        self.default = {obj.name: obj.xray.flags_simple for obj in bpy.data.objects}
 
         # Act
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ACTIVE', obj_type='dy')
+        self.assertReportsContains('INFO', re.compile('Objects Changed: 1'))
 
         # Assert
         self.assertEqual(active.xray.flags_simple, 'dy')
@@ -31,7 +41,9 @@ class TestOpsProps(tests.utils.XRayTestCase):
         self._reset_objects_type()
 
         # Act
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='SELECTED', obj_type='ho')
+        self.assertReportsContains('INFO', re.compile('Objects Changed: 2'))
 
         # Assert
         for obj in selected:
@@ -43,7 +55,9 @@ class TestOpsProps(tests.utils.XRayTestCase):
         self._reset_objects_type()
 
         # Act
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ALL', obj_type='mu')
+        self.assertReportsContains('INFO', re.compile('Objects Changed: 5'))
 
         # Assert
         for obj in bpy.data.objects:
@@ -51,11 +65,21 @@ class TestOpsProps(tests.utils.XRayTestCase):
         self._reset_objects_type()
 
         # tests without root-objects
+
         for obj in bpy.data.objects:
             obj.xray.isroot = False
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ACTIVE', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('No root-objects!'))
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='SELECTED', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('No root-objects!'))
+
+        self.clear_reports()
         bpy.ops.io_scene_xray.change_object_type(mode='ALL', obj_type='st')
+        self.assertReportsContains('ERROR', re.compile('No root-objects!'))
 
     def _reset_objects_type(self):
         for obj_name, obj_type in self.default.items():

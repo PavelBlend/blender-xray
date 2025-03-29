@@ -13,7 +13,7 @@ def search_objects(self, context):
         if context.active_object:
             objects.append(context.active_object)
         else:
-            self.report({'INFO'}, 'No active object!')
+            self.report({'ERROR'}, 'No active object!')
             return {'FINISHED'}
 
     # selected
@@ -22,7 +22,7 @@ def search_objects(self, context):
             for obj in context.selected_objects:
                 objects.append(obj)
         else:
-            self.report({'INFO'}, 'No selected objects!')
+            self.report({'ERROR'}, 'No selected objects!')
             return {'FINISHED'}
 
     # all
@@ -31,7 +31,7 @@ def search_objects(self, context):
             for obj in bpy.data.objects:
                 objects.append(obj)
         else:
-            self.report({'INFO'}, 'Scene has no objects!')
+            self.report({'ERROR'}, 'Scene has no objects!')
             return {'FINISHED'}
 
     # search root objects
@@ -41,7 +41,7 @@ def search_objects(self, context):
             root_objs.append(obj)
 
     if not root_objs:
-        self.report({'INFO'}, 'No root-objects!')
+        self.report({'ERROR'}, 'No root-objects!')
         return {'FINISHED'}
 
     return root_objs

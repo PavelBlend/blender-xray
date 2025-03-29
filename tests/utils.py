@@ -162,6 +162,9 @@ class XRayTestCase(unittest.TestCase):
             self._reports
         ))
 
+    def clear_reports(self):
+        self._reports.clear()
+
     def assertReportsNotContains(self, report_type=None, re_message=None):
         report = self._findReport(report_type, re_message)
 
