@@ -8,6 +8,7 @@ from .. import utils
 def search_objects(self, context):
     objects = []
 
+    # active
     if self.mode == 'ACTIVE':
         if context.active_object:
             objects.append(context.active_object)
@@ -15,6 +16,7 @@ def search_objects(self, context):
             self.report({'INFO'}, 'No active object!')
             return {'FINISHED'}
 
+    # selected
     elif self.mode == 'SELECTED':
         if context.selected_objects:
             for obj in context.selected_objects:
@@ -23,7 +25,8 @@ def search_objects(self, context):
             self.report({'INFO'}, 'No selected objects!')
             return {'FINISHED'}
 
-    elif self.mode == 'ALL':
+    # all
+    else:
         if bpy.data.objects:
             for obj in bpy.data.objects:
                 objects.append(obj)
