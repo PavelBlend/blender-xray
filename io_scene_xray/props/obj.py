@@ -264,7 +264,7 @@ class XRayObjectLevelProperties(bpy.types.PropertyGroup):
         items=(
             ('2', 'Static', ''),
             ('0', 'Hemi', ''),
-            ('1', 'Sun', '')
+            ('1', 'Sun ', '')
         ),
         update=_update_controller_name
     )

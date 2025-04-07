@@ -505,15 +505,21 @@ def draw_split_prop_search(layout, owner, prop, label, search_owner, search_prop
 def draw_level_props(layout, data):
     box = layout.box()
     level = data.level
-    draw_split_prop(box, level, 'object_type', 'Type')
+    draw_split_prop(
+        box,
+        level,
+        'object_type',
+        text.get_iface(text.iface.level_type)
+    )
     object_type = level.object_type
 
+    # level
     if object_type == 'LEVEL':
         draw_split_prop_search(
             box,
             level,
             'sectors_obj',
-            'Sectors Object',
+            text.get_iface(text.iface.sectors_obj),
             bpy.data,
             'objects'
         )
@@ -521,7 +527,7 @@ def draw_level_props(layout, data):
             box,
             level,
             'portals_obj',
-            'Portals Object',
+            text.get_iface(text.iface.portals_obj),
             bpy.data,
             'objects'
         )
@@ -529,7 +535,7 @@ def draw_level_props(layout, data):
             box,
             level,
             'lights_obj',
-            'Lights Object',
+            text.get_iface(text.iface.lights_obj),
             bpy.data,
             'objects'
         )
@@ -537,11 +543,12 @@ def draw_level_props(layout, data):
             box,
             level,
             'glows_obj',
-            'Glows Object',
+            text.get_iface(text.iface.glows_obj),
             bpy.data,
             'objects'
         )
 
+    # portal
     elif object_type == 'PORTAL':
         for portal in ('front', 'back'):
             prop_name = 'sector_' + portal
@@ -549,64 +556,170 @@ def draw_level_props(layout, data):
                 box,
                 level,
                 prop_name,
-                prop_name.replace('_', ' ').title(),
+                text.get_iface(getattr(text.iface, prop_name)),
                 bpy.data,
                 'objects'
             )
 
+    # visual
     elif object_type == 'VISUAL':
-        draw_split_prop(box, level, 'visual_type', 'Visual Type')
+        draw_split_prop(
+            box,
+            level,
+            'visual_type',
+            text.get_iface(text.iface.visual_type)
+        )
 
         if level.visual_type in {'TREE_ST', 'TREE_PM'}:
             # color scale
             color_scale_box = box.box()
-            color_scale_box.label(text='Color Scale:')
+            color_scale_box.label(
+                text=text.get_iface(text.iface.color_scale) + ':'
+            )
 
             col = color_scale_box.row()
-            col.prop(level, 'color_scale_rgb')
+            col.prop(
+                level,
+                'color_scale_rgb',
+                text=text.get_iface(text.iface.light)
+            )
 
             col = color_scale_box.row()
-            col.prop(level, 'color_scale_hemi')
+            col.prop(
+                level,
+                'color_scale_hemi',
+                text=text.get_iface(text.iface.hemi)
+            )
 
             col = color_scale_box.row()
-            col.prop(level, 'color_scale_sun')
+            col.prop(
+                level,
+                'color_scale_sun',
+                text=text.get_iface(text.iface.sun)
+            )
 
             # color bias
             color_bias_box = box.box()
-            color_bias_box.label(text='Color Bias:')
+            color_bias_box.label(
+                text=text.get_iface(text.iface.color_bias) + ':'
+            )
 
             col = color_bias_box.row()
-            col.prop(level, 'color_bias_rgb')
+            col.prop(
+                level,
+                'color_bias_rgb',
+                text=text.get_iface(text.iface.light)
+            )
 
             col = color_bias_box.row()
-            col.prop(level, 'color_bias_hemi')
+            col.prop(
+                level,
+                'color_bias_hemi',
+                text=text.get_iface(text.iface.hemi)
+            )
 
             col = color_bias_box.row()
-            col.prop(level, 'color_bias_sun')
+            col.prop(
+                level,
+                'color_bias_sun',
+                text=text.get_iface(text.iface.sun)
+            )
 
         elif level.visual_type in {'NORMAL', 'PROGRESSIVE'}:
-            box.prop(level, 'use_fastpath')
+            box.prop(
+                level,
+                'use_fastpath',
+                text=text.get_iface(text.iface.use_fastpath)
+            )
 
+    # light
     elif object_type == 'LIGHT_DYNAMIC':
-        draw_split_prop(box, level, 'controller_name', 'Controller')
-        draw_split_prop(box, level, 'light_type_name', 'Light Type')
 
-        row = box.row()
-        row.prop(level, 'diffuse')
+        # controller name
+        draw_split_prop(
+            box,
+            level,
+            'controller_name',
+            text.get_iface(text.iface.controller)
+        )
 
-        row = box.row()
-        row.prop(level, 'specular')
+        # light type
+        draw_split_prop(
+            box,
+            level,
+            'light_type_name',
+            text.get_iface(text.iface.light_type)
+        )
 
-        row = box.row()
-        row.prop(level, 'ambient')
+        # diffuse
+        box.row().prop(
+            level,
+            'diffuse',
+            text=text.get_iface(text.iface.diffuse)
+        )
 
-        box.prop(level, 'range_')
-        box.prop(level, 'falloff')
-        box.prop(level, 'attenuation_0')
-        box.prop(level, 'attenuation_1')
-        box.prop(level, 'attenuation_2')
-        box.prop(level, 'theta')
-        box.prop(level, 'phi')
+        # specular
+        box.row().prop(
+            level,
+            'specular',
+            text=text.get_iface(text.iface.specular)
+        )
+
+        # ambient
+        box.row().prop(
+            level,
+            'ambient',
+            text=text.get_iface(text.iface.ambient)
+        )
+
+        # range
+        box.prop(
+            level,
+            'range_',
+            text=text.get_iface(text.iface.cutoff_range)
+        )
+
+        # falloff
+        box.prop(
+            level,
+            'falloff',
+            text=text.get_iface(text.iface.falloff)
+        )
+
+        # attenuation 0
+        box.prop(
+            level,
+            'attenuation_0',
+            text=text.get_iface(text.iface.attenuation_0)
+        )
+
+        # attenuation 1
+        box.prop(
+            level,
+            'attenuation_1',
+            text=text.get_iface(text.iface.attenuation_1)
+        )
+
+        # attenuation 2
+        box.prop(
+            level,
+            'attenuation_2',
+            text=text.get_iface(text.iface.attenuation_2)
+        )
+
+        # theta
+        box.prop(
+            level,
+            'theta',
+            text=text.get_iface(text.iface.theta)
+        )
+
+        # phi
+        box.prop(
+            level,
+            'phi',
+            text=text.get_iface(text.iface.phi)
+        )
 
 
 def get_used(prefs):
