@@ -384,7 +384,8 @@ def _create_group_nodes(
         shader_groups,
         use_lmap_1,
         use_lmap_2,
-        light_format
+        light_format,
+        create_light
     ):
 
     # create group node
@@ -514,32 +515,15 @@ def _create_group_nodes(
         mix_node = utils.version.get_node('ShaderNodeMix', utils.version.IS_34)
         factor = utils.version.get_node('Factor', utils.version.IS_34)
 
-        light_sun = grp.nodes.new(mix_node)
-        light_sun.name = 'Light + Sun'
-        light_sun.label = 'Light + Sun'
-        light_sun.blend_type = 'ADD'
-        light_sun.inputs[factor].default_value = 1.0
-        light_sun.select = False
-        light_sun.location.x = -500
-        light_sun.location.y = 200
+        if utils.version.IS_34:
+            res = 2
+            col1 = 6
+            col2 = 7
 
-        hemi = grp.nodes.new(mix_node)
-        hemi.name = '+ Hemi'
-        hemi.label = '+ Hemi'
-        hemi.blend_type = 'ADD'
-        hemi.inputs[factor].default_value = 1.0
-        hemi.select = False
-        hemi.location.x = -150
-        hemi.location.y = 0
-
-        lmap = grp.nodes.new(mix_node)
-        lmap.name = 'Diffuse * Light Map'
-        lmap.label = 'Diffuse * Light Map'
-        lmap.blend_type = 'MULTIPLY'
-        lmap.inputs[factor].default_value = 1.0
-        lmap.select = False
-        lmap.location.x = 200
-        lmap.location.y = 200
+        else:
+            res = 'Color'
+            col1 = 'Color1'
+            col2 = 'Color2'
 
         # create bump nodes
         sep = grp.nodes.new(sep_col)
@@ -573,114 +557,142 @@ def _create_group_nodes(
         norm.location.x = 200
         norm.location.y = -500
 
-        if utils.version.IS_34:
-            light_sun.data_type = 'RGBA'
-            hemi.data_type = 'RGBA'
-            lmap.data_type = 'RGBA'
-            bump_mix.data_type = 'RGBA'
-            res = 2
-            col1 = 6
-            col2 = 7
+        if create_light:
+            light_sun = grp.nodes.new(mix_node)
+            light_sun.name = 'Light + Sun'
+            light_sun.label = 'Light + Sun'
+            light_sun.blend_type = 'ADD'
+            light_sun.inputs[factor].default_value = 1.0
+            light_sun.select = False
+            light_sun.location.x = -500
+            light_sun.location.y = 200
+
+            hemi = grp.nodes.new(mix_node)
+            hemi.name = '+ Hemi'
+            hemi.label = '+ Hemi'
+            hemi.blend_type = 'ADD'
+            hemi.inputs[factor].default_value = 1.0
+            hemi.select = False
+            hemi.location.x = -150
+            hemi.location.y = 0
+
+            lmap = grp.nodes.new(mix_node)
+            lmap.name = 'Diffuse * Light Map'
+            lmap.label = 'Diffuse * Light Map'
+            lmap.blend_type = 'MULTIPLY'
+            lmap.inputs[factor].default_value = 1.0
+            lmap.select = False
+            lmap.location.x = 200
+            lmap.location.y = 200
+
+            if utils.version.IS_34:
+                light_sun.data_type = 'RGBA'
+                hemi.data_type = 'RGBA'
+                lmap.data_type = 'RGBA'
+
+            # link nodes
+            grp.links.new(
+                lmap.outputs[res],    # Result
+                shader_node.inputs[color_socket]
+            )
+            grp.links.new(
+                input_node.outputs['Texture Color'],
+                lmap.inputs[col1]    # color A
+            )
+            grp.links.new(
+                light_sun.outputs[res],    # Result
+                hemi.inputs[col1]    # color A
+            )
+            hemi_lmap = grp.links.new(
+                hemi.outputs[res],    # Result
+                lmap.inputs[col2]    # color B
+            )
 
         else:
-            res = 'Color'
-            col1 = 'Color1'
-            col2 = 'Color2'
+            grp.links.new(
+                input_node.outputs['Texture Color'],
+                shader_node.inputs[color_socket]
+            )
+
+        if utils.version.IS_34:
+            bump_mix.data_type = 'RGBA'
 
         # vertex colors
         light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, grp)
 
-        # link nodes
-
-        grp.links.new(
-            lmap.outputs[res],    # Result
-            shader_node.inputs[color_socket]
-        )
-        grp.links.new(
-            input_node.outputs['Texture Color'],
-            lmap.inputs[col1]    # color A
-        )
-        grp.links.new(
-            light_sun.outputs[res],    # Result
-            hemi.inputs[col1]    # color A
-        )
-        hemi_lmap = grp.links.new(
-            hemi.outputs[res],    # Result
-            lmap.inputs[col2]    # color B
-        )
-
         # link light maps
-        if use_lmap_1 and use_lmap_2:
-            grp.nodes.remove(hemi_node)
+        if create_light:
+            if use_lmap_1 and use_lmap_2:
+                grp.nodes.remove(hemi_node)
 
-            grp.links.new(
-                input_node.outputs['Light Map 1 Color'],
-                light_sun.inputs[col1]    # color A
-            )
-            grp.links.new(
-                input_node.outputs['Light Map 1 Alpha'],
-                light_sun.inputs[col2]    # color B
-            )
-
-            # soc
-            if light_format in ('SOC', '1964-3120'):
                 grp.links.new(
-                    input_node.outputs['Light Map 2 Color'],
+                    input_node.outputs['Light Map 1 Color'],
+                    light_sun.inputs[col1]    # color A
+                )
+                grp.links.new(
+                    input_node.outputs['Light Map 1 Alpha'],
+                    light_sun.inputs[col2]    # color B
+                )
+
+                # soc
+                if light_format in ('SOC', '1964-3120'):
+                    grp.links.new(
+                        input_node.outputs['Light Map 2 Color'],
+                        hemi.inputs[col2]    # color B
+                    )
+
+                # cs/cop
+                elif light_format in ('CSCOP', '3436-3844'):
+                    grp.links.new(
+                        input_node.outputs['Light Map 2 Alpha'],
+                        hemi.inputs[col2]    # color B
+                    )
+
+            # link terrain
+            elif use_lmap_1 and not use_lmap_2:
+                if alpha_link:
+                    grp.links.remove(alpha_link)
+                grp.nodes.remove(hemi_node)
+
+                grp.links.new(
+                    input_node.outputs['Texture Alpha'],
+                    hemi.inputs[col2]    # color B
+                )
+                grp.links.new(
+                    input_node.outputs['Light Map 1 Color'],
+                    light_sun.inputs[col1]    # color A
+                )
+                grp.links.new(
+                    input_node.outputs['Light Map 1 Alpha'],
+                    light_sun.inputs[col2]    # color B
+                )
+
+            # link vertex colors
+            elif light_node and sun_node and hemi_node:
+                grp.links.new(
+                    light_node.outputs['Color'],
+                    light_sun.inputs[col1]    # color A
+                )
+                grp.links.new(
+                    sun_node.outputs['Color'],
+                    light_sun.inputs[col2]    # color B
+                )
+                grp.links.new(
+                    hemi_node.outputs['Color'],
                     hemi.inputs[col2]    # color B
                 )
 
-            # cs/cop
-            elif light_format in ('CSCOP', '3436-3844'):
+            # link multiple usage
+            elif use_hemi and not use_light and not use_sun:
+                grp.links.remove(hemi_lmap)
+                grp.nodes.remove(light_sun)
+                grp.nodes.remove(hemi)
+                lmap.inputs[factor].default_value = 0.5
+
                 grp.links.new(
-                    input_node.outputs['Light Map 2 Alpha'],
-                    hemi.inputs[col2]    # color B
+                    hemi_node.outputs['Color'],
+                    lmap.inputs[col2]    # color B
                 )
-
-        # link terrain
-        elif use_lmap_1 and not use_lmap_2:
-            if alpha_link:
-                grp.links.remove(alpha_link)
-            grp.nodes.remove(hemi_node)
-
-            grp.links.new(
-                input_node.outputs['Texture Alpha'],
-                hemi.inputs[col2]    # color B
-            )
-            grp.links.new(
-                input_node.outputs['Light Map 1 Color'],
-                light_sun.inputs[col1]    # color A
-            )
-            grp.links.new(
-                input_node.outputs['Light Map 1 Alpha'],
-                light_sun.inputs[col2]    # color B
-            )
-
-        # link vertex colors
-        elif light_node and sun_node and hemi_node:
-            grp.links.new(
-                light_node.outputs['Color'],
-                light_sun.inputs[col1]    # color A
-            )
-            grp.links.new(
-                sun_node.outputs['Color'],
-                light_sun.inputs[col2]    # color B
-            )
-            grp.links.new(
-                hemi_node.outputs['Color'],
-                hemi.inputs[col2]    # color B
-            )
-
-        # link multiple usage
-        elif use_hemi and not use_light and not use_sun:
-            grp.links.remove(hemi_lmap)
-            grp.nodes.remove(light_sun)
-            grp.nodes.remove(hemi)
-            lmap.inputs[factor].default_value = 0.5
-
-            grp.links.new(
-                hemi_node.outputs['Color'],
-                lmap.inputs[col2]    # color B
-            )
 
         # link bump nodes
         grp.links.new(norm.outputs['Normal'], shader_node.inputs['Normal'])
@@ -712,7 +724,8 @@ def _create_and_link_nodes(
         bump_1,
         bump_2,
         shader_groups,
-        light_format
+        light_format,
+        create_light
     ):
 
     xray = mat.xray
@@ -721,11 +734,16 @@ def _create_and_link_nodes(
     img_node, bumps = _create_image_nodes(mat, diff_img, bump_1, bump_2, xray)
 
     # light maps image
-    lmap_imgs, use_lmap_1, use_lmap_2 = _create_lmap_image_nodes(
-        mat,
-        xray,
-        img_node
-    )
+    if create_light:
+        lmap_imgs, use_lmap_1, use_lmap_2 = _create_lmap_image_nodes(
+            mat,
+            xray,
+            img_node
+        )
+    else:
+        lmap_imgs = []
+        use_lmap_1 = False
+        use_lmap_2 = False
 
     # group node
     group = _create_group_nodes(
@@ -734,7 +752,8 @@ def _create_and_link_nodes(
         shader_groups,
         use_lmap_1,
         use_lmap_2,
-        light_format
+        light_format,
+        create_light
     )
 
     # create output node
@@ -801,7 +820,7 @@ def _create_and_link_nodes(
         )
 
 
-def _create_shader_nodes(ctx, mat, shader_groups, light_format):
+def _create_shader_nodes(ctx, mat, shader_groups, light_format, create_light):
     # get diffuse image
     diff_img = _get_diffuse_img(mat)
     if not diff_img:
@@ -830,7 +849,8 @@ def _create_shader_nodes(ctx, mat, shader_groups, light_format):
         bump_1_img,
         bump_2_img,
         shader_groups,
-        light_format
+        light_format,
+        create_light
     )
 
 
@@ -969,16 +989,18 @@ class XRAY_OT_create_level_shader_nodes(_BaseOperator):
         ctx = formats.contexts.ImportMeshContext()
 
         for mat in materials:
-            _create_shader_nodes(ctx, mat, shader_groups, self.light_format)
+            _create_shader_nodes(
+                ctx,
+                mat,
+                shader_groups,
+                self.light_format,
+                True
+            )
             change_count += 1
 
         self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
 
 
 class XRAY_OT_remove_level_shader_nodes(_BaseOperator):
@@ -1007,9 +1029,54 @@ class XRAY_OT_remove_level_shader_nodes(_BaseOperator):
         return {'FINISHED'}
 
 
+class XRAY_OT_create_bump_nodes(_BaseOperator):
+    bl_idname = 'io_scene_xray.create_bump_nodes'
+    bl_label = 'Create Bump Nodes'
+
+    mode = bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=(
+            ('ACTIVE_MATERIAL', 'Active Material', ''),
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', ''),
+            ('ALL_MATERIALS', 'All Materials', '')
+        )
+    )
+
+    def draw(self, context):    # pragma: no cover
+        col = self.layout.column(align=True)
+
+        col.label(text='Mode:')
+        col.prop(self, 'mode', expand=True)
+
+    def execute(self, context):
+        materials = _get_materials(self.mode)
+
+        change_count = 0
+        shader_groups = {}
+
+        ctx = formats.contexts.ImportMeshContext()
+
+        for mat in materials:
+            _create_shader_nodes(
+                ctx,
+                mat,
+                shader_groups,
+                None,    # light format
+                False    # create light nodes
+            )
+            change_count += 1
+
+        self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
+
+        return {'FINISHED'}
+
+
 classes = (
     XRAY_OT_create_level_shader_nodes,
-    XRAY_OT_remove_level_shader_nodes
+    XRAY_OT_remove_level_shader_nodes,
+    XRAY_OT_create_bump_nodes
 )
 
 

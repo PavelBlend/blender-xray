@@ -466,6 +466,10 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
             icon='SCENE_DATA'
         )
         column.operator(
+            ops.level_shaders.XRAY_OT_create_bump_nodes.bl_idname,
+            icon='SNAP_NORMAL'
+        )
+        column.operator(
             ops.level_shaders.XRAY_OT_remove_level_shader_nodes.bl_idname,
             icon='CANCEL'
         )
