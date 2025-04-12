@@ -158,7 +158,9 @@ class OmfFile():
         'file_path',
         'animations',
         'motions_params',
-        'bone_names'
+        'bone_names',
+        'mark_reader',
+        'mark_offsets'
     )
 
     def __init__(self, file_path):
@@ -187,7 +189,12 @@ class OmfFile():
 
         params_data = chunks.pop(formats.ogf.fmt.Chunks_v4.S_SMPARAMS_1)
         params_chunk = 1
-        self.motions_params, self.bone_names = formats.omf.imp.read_params(
+        (
+            self.motions_params,
+            self.bone_names,
+            self.mark_reader,
+            self.mark_offsets
+        ) = formats.omf.imp.read_params(
             params_data,
             imp_ctx,
             params_chunk
@@ -320,7 +327,9 @@ def import_anim(obj, file, animation_name):
             imp_ctx,
             file.motions_params,
             file.bone_names,
-            2    # version
+            2,    # version
+            file.mark_reader,
+            file.mark_offsets
         )
 
     browser.animations_prev_name = animation_name
