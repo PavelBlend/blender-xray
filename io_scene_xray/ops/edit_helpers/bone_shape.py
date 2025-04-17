@@ -294,6 +294,8 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
     @classmethod
     def poll(cls, context):
         _, bone = HELPER.get_helper(context)
+        if not bone:
+            return False
         return bone.xray.shape.type in ('1', '2', '3')
 
     def execute(self, context):
@@ -332,6 +334,8 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     @classmethod
     def poll(cls, context):
         _, bone = HELPER.get_helper(context)
+        if not bone:
+            return False
         return bone.xray.shape.type in ('1', '2', '3')
 
     def draw(self, context):    # pragma: no cover
