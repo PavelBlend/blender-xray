@@ -184,7 +184,7 @@ translations_table = (
     (error.omf_nothing, 'Ничего не импортировано. Измените настройки импорта'),
 
     # omf merge
-    (error.few_files, 'Необходимо выделить больше одного файла'),
+    (error.few_files, 'Необходимо выбрать больше одного файла'),
     (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
     (error.omf_merge_different_params, 'Файл имеет другую версию параметров'),
     (error.omf_merge_unsupported_params, 'Не поддерживаемая версия параметров'),

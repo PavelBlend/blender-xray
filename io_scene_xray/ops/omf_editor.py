@@ -37,6 +37,9 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
     def poll(cls, context):
         return context.scene.xray.merge_omf.omf_files
 
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
     @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
@@ -46,6 +49,10 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         for omf in context.scene.xray.merge_omf.omf_files:
             if omf.file_path not in omf_files:
                 omf_files.append(omf.file_path)
+
+        if len(omf_files) == 1:
+            self.report({'ERROR'}, text.error.few_files)
+            return {'CANCELLED'}
 
         try:
             merged_data = formats.omf.merge.merge_files(omf_files)
@@ -96,6 +103,9 @@ class XRAY_OT_add_omf(utils.ie.BaseOperator):
         options={'SKIP_SAVE'}
     )
 
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
     @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
@@ -107,10 +117,6 @@ class XRAY_OT_add_omf(utils.ie.BaseOperator):
 
         if not len(omf_files):
             self.report({'ERROR'}, text.error.no_sel_files)
-            return {'CANCELLED'}
-
-        if len(omf_files) == 1:
-            self.report({'ERROR'}, text.error.few_files)
             return {'CANCELLED'}
 
         for file_path in omf_files:
