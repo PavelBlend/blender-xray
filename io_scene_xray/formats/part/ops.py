@@ -103,6 +103,7 @@ class XRAY_OT_export_part(
 
     bl_idname = 'xray_export.part'
     bl_label = 'Export .part'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
     ext = filename_ext

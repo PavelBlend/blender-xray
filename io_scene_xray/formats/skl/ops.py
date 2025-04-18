@@ -243,7 +243,7 @@ class XRAY_OT_export_skl_file(
     bl_idname = 'xray_export.skl_file'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     filename_ext = skl_ext
 
@@ -312,7 +312,7 @@ class XRAY_OT_export_skls_file(
     bl_idname = 'xray_export.skls_file'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     text = op_text
     ext = skls_ext
@@ -383,7 +383,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animations'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     text = op_text
     ext = skls_ext
@@ -512,7 +512,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animations'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     text = op_text
     ext = skl_ext
