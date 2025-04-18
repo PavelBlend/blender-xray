@@ -235,6 +235,13 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         if context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
+        # remove current animation data
+        if src_arm_obj.animation_data:
+            src_arm_obj.animation_data.action = None
+
+        # reset bones transforms
+        utils.bone.reset_pose_bone_transforms(src_arm_obj)
+
         # create armature
         arm_obj = src_arm_obj.copy()
         arm = src_arm.copy()
