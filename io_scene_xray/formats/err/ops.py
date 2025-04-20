@@ -37,6 +37,9 @@ class XRAY_OT_import_err(
     )
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'rawdata_folder')
+
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state

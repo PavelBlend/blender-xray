@@ -52,6 +52,7 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'maps_folder')
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
@@ -122,8 +123,8 @@ class XRAY_OT_export_part(
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'maps_folder')
         layout = self.layout
-
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
 
     @log.execute_with_logger

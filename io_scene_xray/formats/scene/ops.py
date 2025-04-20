@@ -37,6 +37,9 @@ class XRAY_OT_export_scene(
     )
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'rawdata_folder')
+
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
@@ -93,6 +96,7 @@ class XRAY_OT_import_scene(
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'rawdata_folder')
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
