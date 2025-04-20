@@ -810,11 +810,15 @@ def _auto_path_prop(prefs, prop_name, game_folder, raw_folder):
 
     else:
         if prop_name == 'gamedata_folder':
-            if raw_folder:
+            if game_folder:
+                result = game_folder
+            elif raw_folder:
                 dirname = os.path.dirname(raw_folder)
                 result = os.path.join(dirname, suffix)
         elif prop_name == 'rawdata_folder':
-            if game_folder:
+            if raw_folder:
+                result = raw_folder
+            elif game_folder:
                 dirname = os.path.dirname(game_folder)
                 result = os.path.join(dirname, suffix)
 
