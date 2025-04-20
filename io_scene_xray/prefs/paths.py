@@ -17,6 +17,8 @@ class PathsSettings(bpy.types.PropertyGroup):
         name='fs.ltx File',
         update=props.update_paths
     )
+
+    # gamedata folders
     gamedata_folder = bpy.props.StringProperty(
         subtype='DIR_PATH',
         update=props.update_paths
@@ -33,6 +35,8 @@ class PathsSettings(bpy.types.PropertyGroup):
         subtype='DIR_PATH',
         update=props.update_paths
     )
+
+    # gamedata files
     gamemtl_file = bpy.props.StringProperty(
         subtype='FILE_PATH',
         update=props.update_paths
@@ -45,7 +49,21 @@ class PathsSettings(bpy.types.PropertyGroup):
         subtype='FILE_PATH',
         update=props.update_paths
     )
+
+    # rawdata folders
+    rawdata_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
     objects_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    maps_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    groups_folder = bpy.props.StringProperty(
         subtype='DIR_PATH',
         update=props.update_paths
     )

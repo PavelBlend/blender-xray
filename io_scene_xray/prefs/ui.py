@@ -13,15 +13,23 @@ from .. import ui
 
 
 path_props_names = {
+
     'fs_ltx_file': 'FS Ltx File',
+
     'gamedata_folder': 'Gamedata Folder',
     'textures_folder': 'Textures Folder',
     'meshes_folder': 'Meshes Folder',
     'levels_folder': 'Levels Folder',
+
     'gamemtl_file': 'Game Materials File',
     'eshader_file': 'Engine Shaders File',
     'cshader_file': 'Compile Shaders File',
-    'objects_folder': 'Objects Folder'
+
+    'rawdata_folder': 'Rawdata Folder',
+    'objects_folder': 'Objects Folder',
+    'maps_folder': 'Maps Folder',
+    'groups_folder': 'Groups Folder'
+
 }
 
 
@@ -87,16 +95,23 @@ def draw_paths_simple(layout, prefs):
 
     layout.separator()
 
-    # folders
+    # gamedata folders
     draw_path_prop(layout, prefs, 'gamedata_folder', False)
     draw_path_prop(layout, prefs, 'textures_folder', False)
     draw_path_prop(layout, prefs, 'meshes_folder', False)
     draw_path_prop(layout, prefs, 'levels_folder', False)
-    draw_path_prop(layout, prefs, 'objects_folder', False)
 
     layout.separator()
 
-    # files
+    # rawdata folders
+    draw_path_prop(layout, prefs, 'rawdata_folder', False)
+    draw_path_prop(layout, prefs, 'objects_folder', False)
+    draw_path_prop(layout, prefs, 'maps_folder', False)
+    draw_path_prop(layout, prefs, 'groups_folder', False)
+
+    layout.separator()
+
+    # gamedata files
     draw_path_prop(layout, prefs, 'eshader_file', True)
     draw_path_prop(layout, prefs, 'cshader_file', True)
     draw_path_prop(layout, prefs, 'gamemtl_file', True)

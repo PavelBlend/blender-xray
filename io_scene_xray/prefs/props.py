@@ -16,42 +16,93 @@ from .. import utils
 from .. import text
 
 
+def _norm_path(path):
+    if path and path[-1] == os.sep:
+        path = path[ : -1]
+    return path
+
+
+def _search_folder(pref, prop_names):
+    for prop_name in prop_names:
+        prop_value = getattr(pref, prop_name)
+        if prop_value:
+            prop_value = _norm_path(prop_value)
+            dirname = os.path.dirname(prop_value)
+            if dirname == prop_value:
+                continue    # os.path.dirname('T:') == 'T:'
+            return dirname
+
+
+def _get_game_raw_folders(pref):
+    game_folder = _norm_path(pref.gamedata_folder)
+    raw_folder = _norm_path(pref.rawdata_folder)
+
+    if not game_folder:
+        prop_names = (
+            'textures_folder',
+            'meshes_folder',
+            'levels_folder',
+            'gamemtl_file',
+            'eshader_file',
+            'cshader_file'
+        )
+        game_folder = _search_folder(pref, prop_names)
+
+    if not raw_folder:
+        prop_names = (
+            'objects_folder',
+            'maps_folder',
+            'groups_folder'
+        )
+        raw_folder = _search_folder(pref, prop_names)
+
+    if game_folder and not raw_folder:
+        suffix = path_props_suffix_values['rawdata_folder']
+        raw_folder = os.path.join(
+            os.path.dirname(game_folder),
+            suffix
+        )
+
+    elif not game_folder and raw_folder:
+        suffix = path_props_suffix_values['gamedata_folder']
+        game_folder = os.path.join(
+            os.path.dirname(raw_folder),
+            suffix
+        )
+
+    return game_folder, raw_folder
+
+
 def update_menu_func(self, context):
     menus.append_menu_func()
 
 
-def update_paths(prefs, context):
-    if not prefs.use_update:
+def update_paths(pref, context):
+    if not pref.use_update:
         return
 
     not_found_paths = set()
 
-    for prop, suffix in path_props_suffix_values.items():
+    game_folder, raw_folder = _get_game_raw_folders(pref)
 
-        if getattr(prefs, prop):
-            setattr(prefs, build_auto_id(prop), getattr(prefs, prop))
+    for prop in path_props_suffix_values.keys():
+
+        prop_val = getattr(pref, prop)
+        if prop_val:
+            setattr(pref, build_auto_id(prop), prop_val)
             continue
 
-        prop_type = path_props_types[prop]
-
-        if prop_type == DIRECTORY:
-            cheker_fun = os.path.isdir
-        elif prop_type == FILE:
-            cheker_fun = os.path.isfile
-
-        try:
-            value, not_found = _auto_path(prefs, prop, suffix, cheker_fun)
-        except:
-            return
+        value, not_found = _auto_path(pref, prop, game_folder, raw_folder)
 
         if not_found:
             not_found_paths.add(os.path.abspath(not_found))
 
+        prop_type = path_props_types[prop]
         if value and prop_type == DIRECTORY:
             if not value.endswith(os.sep):
                 value += os.sep
 
-        setattr(prefs, build_auto_id(prop), value)
+        setattr(pref, build_auto_id(prop), value)
 
     if not_found_paths:
         not_found_paths = list(not_found_paths)
@@ -104,20 +155,38 @@ prefs_props = {
         subtype='FILE_PATH',
         update=update_paths
     ),
+    'rawdata_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
     'objects_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'maps_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'groups_folder': bpy.props.StringProperty(
         subtype='DIR_PATH',
         update=update_paths
     ),
 
     # path auto props
+
     'gamedata_folder_auto': bpy.props.StringProperty(),
     'textures_folder_auto': bpy.props.StringProperty(),
     'meshes_folder_auto': bpy.props.StringProperty(),
     'levels_folder_auto': bpy.props.StringProperty(),
+
     'gamemtl_file_auto': bpy.props.StringProperty(),
     'eshader_file_auto': bpy.props.StringProperty(),
     'cshader_file_auto': bpy.props.StringProperty(),
+
+    'rawdata_folder_auto': bpy.props.StringProperty(),
     'objects_folder_auto': bpy.props.StringProperty(),
+    'maps_folder_auto': bpy.props.StringProperty(),
+    'groups_folder_auto': bpy.props.StringProperty(),
 
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus',
@@ -637,25 +706,39 @@ def build_auto_id(prop):
 
 
 __AUTO_PROPS__ = [
+
     'gamedata_folder',
     'textures_folder',
     'meshes_folder',
     'levels_folder',
+
     'gamemtl_file',
     'eshader_file',
     'cshader_file',
-    'objects_folder'
+
+    'rawdata_folder',
+    'objects_folder',
+    'maps_folder',
+    'groups_folder'
+
 ]
 
 fs_props = {
+
     'gamedata_folder': ('$game_data$', None),
     'textures_folder': ('$game_textures$', None),
     'meshes_folder': ('$game_meshes$', None),
     'levels_folder': ('$game_levels$', None),
+
     'gamemtl_file': ('$game_data$', 'gamemtl.xr'),
     'eshader_file': ('$game_data$', 'shaders.xr'),
     'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
-    'objects_folder': ('$objects$', None)
+
+    'rawdata_folder': ('$sdk_root_raw$', None),
+    'objects_folder': ('$objects$', None),
+    'maps_folder': ('$maps$', None),
+    'groups_folder': ('$groups$', None)
+
 }
 
 
@@ -670,99 +753,146 @@ def _clear_paths():
     pref.use_update = True
 
 
-def _auto_path(prefs, prop_name, suffix, checker):
+def _auto_path_fs_ltx(prefs, prop_name):
+    if not os.path.exists(prefs.fs_ltx_file):
+        return '', prefs.fs_ltx_file
+
+    try:
+        fs = rw.ltx.LtxParser()
+        fs.from_file(prefs.fs_ltx_file)
+
+    except log.AppError:
+        traceback.print_exc()
+        utils.draw.show_message(
+            text.get_tip(text.error.ltx_invalid_syntax),
+            (prefs.fs_ltx_file, sys.exc_info()[1]),
+            text.get_tip(text.error.error_title),
+            'ERROR'
+        )
+        _clear_paths()
+        raise BaseException('error')
+
+    except BaseException:
+        _clear_paths()
+        raise BaseException('error')
+
+    prop_key, file_name = fs_props[prop_name]
+    dir_path = fs.values.get(prop_key, None)
+
+    if dir_path is None:
+        utils.draw.show_message(
+            text.get_tip(text.error.ltx_no_param),
+            (prop_key, ),
+            text.get_tip(text.error.error_title),
+            'ERROR'
+        )
+        _clear_paths()
+        raise BaseException('error')
+
+    if file_name:
+        result = os.path.join(dir_path, file_name)
+    else:
+        result = dir_path
+
+    return result, None
+
+
+def _auto_path_prop(prefs, prop_name, game_folder, raw_folder):
+    result = ''
+    parent = path_parents[prop_name]
+    suffix = path_props_suffix_values[prop_name]
+
+    if parent == 'gamedata_folder' and game_folder:
+        result = os.path.join(game_folder, suffix)
+
+    elif parent == 'rawdata_folder' and raw_folder:
+        result = os.path.join(raw_folder, suffix)
+
+    else:
+        if prop_name == 'gamedata_folder':
+            if raw_folder:
+                dirname = os.path.dirname(raw_folder)
+                result = os.path.join(dirname, suffix)
+        elif prop_name == 'rawdata_folder':
+            if game_folder:
+                dirname = os.path.dirname(game_folder)
+                result = os.path.join(dirname, suffix)
+
+    prop_type = path_props_types[prop_name]
+
+    if prop_type == DIRECTORY:
+        checker = os.path.isdir
+    elif prop_type == FILE:
+        checker = os.path.isfile
+
+    if checker(result):
+        return result, None
+
+    return '', result
+
+
+def _auto_path(prefs, prop_name, game_folder, raw_folder):
     if prefs.fs_ltx_file:
-
-        if not os.path.exists(prefs.fs_ltx_file):
-            return '', prefs.fs_ltx_file
-
-        try:
-            fs = rw.ltx.LtxParser()
-            fs.from_file(prefs.fs_ltx_file)
-
-        except log.AppError:
-            traceback.print_exc()
-            utils.draw.show_message(
-                text.get_tip(text.error.ltx_invalid_syntax),
-                (prefs.fs_ltx_file, sys.exc_info()[1]),
-                text.get_tip(text.error.error_title),
-                'ERROR'
-            )
-            _clear_paths()
-            raise BaseException('error')
-
-        except BaseException:
-            _clear_paths()
-            raise BaseException('error')
-
-        prop_key, file_name = fs_props[prop_name]
-        dir_path = fs.values.get(prop_key, None)
-
-        if dir_path is None:
-            utils.draw.show_message(
-                text.get_tip(text.error.ltx_no_param),
-                (prop_key, ),
-                text.get_tip(text.error.error_title),
-                'ERROR'
-            )
-            _clear_paths()
-            raise BaseException('error')
-
-        if file_name:
-            result = os.path.join(dir_path, file_name)
-        else:
-            result = dir_path
-
-        return result, False
-
-    for prop in __AUTO_PROPS__:
-        if prop == prop_name:
-            continue
-        value = getattr(prefs, prop)
-        if not value:
-            continue
-        result = os.path.normpath(value)
-        if prop != 'gamedata_folder':
-            dirname = os.path.dirname(result)
-            if prop == 'objects_folder':
-                dirname = os.path.dirname(dirname)
-                dirname = os.path.join(dirname, 'gamedata')
-            if dirname == result:
-                continue    # os.path.dirname('T:') == 'T:'
-            result = dirname
-        if suffix:
-            result = os.path.join(result, suffix)
-        if checker(result):
-            if prop_name == 'objects_folder':
-                result = os.path.abspath(result)
-            return result, False
-        else:
-            return '', result
-    return '', False
+        return _auto_path_fs_ltx(prefs, prop_name)
+    else:
+        return _auto_path_prop(prefs, prop_name, game_folder, raw_folder)
 
 
 path_props_suffix_values = {
-    'gamedata_folder': '',
+
+    'gamedata_folder': 'gamedata',
     'textures_folder': 'textures',
     'meshes_folder': 'meshes',
     'levels_folder': 'levels',
+
     'gamemtl_file': 'gamemtl.xr',
     'eshader_file': 'shaders.xr',
     'cshader_file': 'shaders_xrlc.xr',
-    'objects_folder': os.path.join('..', 'rawdata', 'objects')
+
+    'rawdata_folder': 'rawdata',
+    'objects_folder': 'objects',
+    'maps_folder': 'maps',
+    'groups_folder': 'groups'
+
+}
+
+path_parents = {
+
+    'gamedata_folder': None,
+    'textures_folder': 'gamedata_folder',
+    'meshes_folder': 'gamedata_folder',
+    'levels_folder': 'gamedata_folder',
+
+    'gamemtl_file': 'gamedata_folder',
+    'eshader_file': 'gamedata_folder',
+    'cshader_file': 'gamedata_folder',
+
+    'rawdata_folder': None,
+    'objects_folder': 'rawdata_folder',
+    'maps_folder': 'rawdata_folder',
+    'groups_folder': 'rawdata_folder'
+
 }
 
 FILE = 'FILE'
 DIRECTORY = 'DIRECTORY'
+
 path_props_types = {
+
     'gamedata_folder': DIRECTORY,
     'textures_folder': DIRECTORY,
     'meshes_folder': DIRECTORY,
     'levels_folder': DIRECTORY,
+
     'gamemtl_file': FILE,
     'eshader_file': FILE,
     'cshader_file': FILE,
-    'objects_folder': DIRECTORY
+
+    'rawdata_folder': DIRECTORY,
+    'objects_folder': DIRECTORY,
+    'maps_folder': DIRECTORY,
+    'groups_folder': DIRECTORY
+
 }
 
 
