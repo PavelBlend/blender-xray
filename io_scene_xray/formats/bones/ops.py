@@ -118,6 +118,8 @@ class XRAY_OT_import_bones(
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+
         layout = self.layout
 
         layout.prop(self, 'import_bone_properties')
@@ -207,6 +209,8 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+
         layout = self.layout
 
         layout.prop(self, 'export_bone_properties')
@@ -288,6 +292,8 @@ class XRAY_OT_export_bones_file(
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+
         layout = self.layout
 
         layout.prop(self, 'export_bone_properties')
