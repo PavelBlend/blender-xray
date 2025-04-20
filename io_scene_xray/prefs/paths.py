@@ -73,10 +73,15 @@ class PathsSettings(bpy.types.PropertyGroup):
     textures_folder_auto = bpy.props.StringProperty()
     meshes_folder_auto = bpy.props.StringProperty()
     levels_folder_auto = bpy.props.StringProperty()
+
     gamemtl_file_auto = bpy.props.StringProperty()
     eshader_file_auto = bpy.props.StringProperty()
     cshader_file_auto = bpy.props.StringProperty()
+
+    rawdata_folder_auto = bpy.props.StringProperty()
     objects_folder_auto = bpy.props.StringProperty()
+    maps_folder_auto = bpy.props.StringProperty()
+    groups_folder_auto = bpy.props.StringProperty()
 
     use_update = bpy.props.BoolProperty(default=True)
 
