@@ -420,6 +420,9 @@ class XRAY_OT_viewer_open_folder(utils.ie.BaseOperator):
         options={'SKIP_SAVE', 'HIDDEN'}
     )
 
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
+
     @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
