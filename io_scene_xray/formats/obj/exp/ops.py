@@ -236,7 +236,7 @@ class XRAY_OT_export_object_file(
             return {'CANCELLED'}
 
         if len(roots) > 1:
-            self.report({'ERROR'}, 'Too many \'root\'-objects selected')
+            self.report({'ERROR'}, text.error.object_many_roots_sel)
             return {'CANCELLED'}
 
         self.object = roots[0].name

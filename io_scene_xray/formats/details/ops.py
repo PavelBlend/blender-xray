@@ -208,11 +208,11 @@ class XRAY_OT_export_details_file(
         dets_objs = search_details()
 
         if not dets_objs:
-            self.report({'ERROR'}, 'Cannot find details object')
+            self.report({'ERROR'}, text.error.details_no_obj)
             return {'CANCELLED'}
 
         if len(dets_objs) > 1:
-            self.report({'ERROR'}, 'Too many details objects found')
+            self.report({'ERROR'}, text.error.details_many_objs)
             return {'CANCELLED'}
 
         details_object = dets_objs[0]
@@ -242,11 +242,11 @@ class XRAY_OT_export_details_file(
         dets_objs = search_details()
 
         if not dets_objs:
-            self.report({'ERROR'}, 'Cannot find details object')
+            self.report({'ERROR'}, text.error.details_no_obj)
             return {'CANCELLED'}
 
         if len(dets_objs) > 1:
-            self.report({'ERROR'}, 'Too many details objects found')
+            self.report({'ERROR'}, text.error.details_many_objs)
             return {'CANCELLED'}
 
         obj = dets_objs[0]
@@ -295,7 +295,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         dets_objs = search_details()
 
         if not dets_objs:
-            self.report({'ERROR'}, 'Cannot find details object')
+            self.report({'ERROR'}, text.error.details_no_obj)
             return {'CANCELLED'}
 
         # create export context
@@ -348,7 +348,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         dets_objs = search_details()
 
         if not dets_objs:
-            self.report({'ERROR'}, 'Cannot find details object')
+            self.report({'ERROR'}, text.error.details_no_obj)
             return {'CANCELLED'}
 
         if len(dets_objs) == 1:

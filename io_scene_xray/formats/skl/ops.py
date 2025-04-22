@@ -180,7 +180,7 @@ class XRAY_OT_import_skls(
         utils.stats.update('Import *.skl/*skls')
 
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         motions_filter = motions.imp.MOTIONS_FILTER_ALL
@@ -447,7 +447,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
                 export_context.errors.append(err)
 
         if not exp_actions_count:
-            self.report({'WARNING'}, 'Selected objects have no actions')
+            self.report({'WARNING'}, text.error.skl_sel_no_acts)
 
         for err in export_context.errors:
             log.err(err)
@@ -478,7 +478,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
                     actions.append(action)
 
             if not actions:
-                self.report({'ERROR'}, 'Active object has no animations')
+                self.report({'ERROR'}, text.error.skl_active_no_acts)
                 return {'CANCELLED'}
 
             return bpy.ops.xray_export.skls_file('INVOKE_DEFAULT')
@@ -602,7 +602,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
 
         # report errors
         if not exp_actions_count and not path_conflicts:
-            self.report({'WARNING'}, 'Selected objects have no actions')
+            self.report({'WARNING'}, text.error.skl_sel_no_acts)
 
         for path in path_conflicts:
             err = log.AppError(
@@ -620,7 +620,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
     def invoke(self, context, event):    # pragma: no cover
 
         if not context.selected_objects:
-            self.report({'ERROR'}, 'No selected objects')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         # set defaults

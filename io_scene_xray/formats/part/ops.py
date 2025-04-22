@@ -64,7 +64,7 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         utils.stats.update('Import *.part')
 
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         import_context = ImportPartContext()

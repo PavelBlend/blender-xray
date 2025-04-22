@@ -8,6 +8,7 @@ from . import exp
 from .. import ie
 from .. import obj
 from ... import utils
+from ... import text
 from ... import log
 
 
@@ -64,7 +65,7 @@ class XRAY_OT_export_scene(
         objs = context.selected_objects
 
         if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         return super().invoke(context, event)

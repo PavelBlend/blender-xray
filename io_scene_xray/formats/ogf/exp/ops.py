@@ -11,6 +11,7 @@ from ... import ie
 from ... import contexts
 from .... import log
 from .... import utils
+from .... import text
 
 
 class ExportOgfContext(
@@ -83,7 +84,7 @@ class XRAY_OT_export_ogf_file(
         root_objs = utils.obj.get_root_objs(export_context)
 
         if not root_objs:
-            self.report({'ERROR'}, 'Cannot find object root')
+            self.report({'ERROR'}, text.error.ogf_no_root)
             return {'CANCELLED'}
 
         exported_obj = root_objs[0]
@@ -125,11 +126,11 @@ class XRAY_OT_export_ogf_file(
         root_objs = utils.obj.get_root_objs(ctx)
 
         if not root_objs:
-            self.report({'ERROR'}, 'Cannot find object root')
+            self.report({'ERROR'}, text.error.ogf_no_root)
             return {'CANCELLED'}
 
         if len(root_objs) > 1:
-            self.report({'ERROR'}, 'Too many object roots found')
+            self.report({'ERROR'}, text.error.ogf_many_roots)
             return {'CANCELLED'}
 
         exported_obj = root_objs[0]
@@ -186,7 +187,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         root_objs = utils.obj.get_root_objs(export_context)
 
         if not root_objs:
-            self.report({'ERROR'}, 'Cannot find root-objects')
+            self.report({'ERROR'}, text.error.ogf_no_roots)
             return {'CANCELLED'}
 
         for obj in root_objs:
@@ -223,7 +224,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         root_objs = utils.obj.get_root_objs(ctx)
 
         if not root_objs:
-            self.report({'ERROR'}, 'Cannot find root-objects')
+            self.report({'ERROR'}, text.error.ogf_no_roots)
             return {'CANCELLED'}
 
         if len(root_objs) == 1:

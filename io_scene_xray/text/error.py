@@ -14,6 +14,7 @@ many_mat = 'Mesh-object has more than one material'
 file_another_prog = 'Unable to write file. The file is open in another program'
 no_active_obj = 'No active object'
 no_selected_obj = 'No selected objects'
+many_sel_objs = 'Too many selected objects found'
 no_blend_obj = 'Current blend-file has no objects'
 is_not_arm = 'Active object is not armature'
 file_not_found = 'File not found'
@@ -41,6 +42,9 @@ anm_unsupport_ver = 'File has unsupported format version'
 # bones import
 bones_many_sel_files = 'Too many selected files. Select one file'
 
+# bones export
+bones_no_sel_arms = 'No selected armatures'
+
 # details convert
 details_light_1569 = 'Object has incorrect light format: "Builds 1096-1558". Must be "Builds 1569-CoP"'
 details_light_1096 = 'Object has incorrect light format: "Builds 1569-CoP". Must be "Builds 1096-1558"'
@@ -54,6 +58,10 @@ details_unsupport_ver = 'Unsupported DETAILS format version'
 details_no_header = 'Bad DETAILS file. Cannot find HEADER chunk'
 details_no_meshes = 'Bad DETAILS file. Cannot find MESHES chunk'
 details_no_slots = 'Bad DETAILS file. Cannot find SLOTS chunk'
+
+# details export
+details_no_obj = 'Cannot find details object'
+details_many_objs = 'Too many details objects found'
 
 # details utility
 details_has_no_img = 'Level details object has no image property'
@@ -76,6 +84,8 @@ dm_bad_indices = 'Bad DM triangle indices'
 
 # dm export
 dm_many_verts = 'Mesh-object has too many vertices'
+dm_no_mesh = 'The select object is not mesh'
+dm_no_meshes = 'There are no meshes among the selected objects'
 
 # dm validate
 dm_tex_type = 'Texture has an incorrect type'
@@ -88,6 +98,9 @@ level_has_no_geom = 'File *.geom not found'
 cform_unsupport_ver = 'Unsupported level cform version'
 
 # level export
+level_many_objs = 'Too many selected level-objects'
+level_param = 'Object "{}" does not have "Level" parameter enabled'
+level_invalid_type = 'Object "{0}" has an invalid type: {1}. Must be "Level"'
 level_no_lmap = 'Cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
 level_lmap_no_dds = 'Incorrect light map format (must be *.dds)'
@@ -141,6 +154,7 @@ object_bad_boneparts = 'Not all bones are tied to the bone part'
 object_many_parents = 'Armature object has more than one parent'
 object_no_roots = 'No root-objects found'
 object_many_roots = 'Too many root-objects found, but none selected'
+object_many_roots_sel = 'Too many root-objects selected'
 
 # object import bone
 object_unsupport_bone_ver = 'Unsupported bone format version'
@@ -161,6 +175,9 @@ ogf_bad_model_type = 'Unsupported OGF model type'
 # ogf export
 ogf_has_no_arm = 'Skeletal mesh-object has no armature'
 ogf_verts_count_limit = 'Too many vertices were created when saving to OGF'
+ogf_no_root = 'Cannot find root-object'
+ogf_no_roots = 'Cannot find root-objects'
+ogf_many_roots = 'Too many root-objects found'
 
 # omf export
 omf_empty = 'Use different export mode. This OMF-file is empty'
@@ -170,6 +187,7 @@ omf_bone_no_group = 'Not all bones in an armature have bone group'
 omf_nothing_exp = 'Nothing is exported! Change the export settings'
 omf_no_acts = 'Armature object has no actions'
 omf_no_bone_groups = 'Armature object has no bone groups'
+omf_has_no_data = 'Object "{}" has no actions and bone groups'
 
 # omf import
 omf_no_bone = 'Armature does not have all bones that file has'
@@ -196,6 +214,8 @@ many_arm_objs = 'More than one armature-object is selected'
 
 # skls export
 skl_path_conflict = 'The folder cannot be created because a file with the same name exists'
+skl_active_no_acts = 'Active object has no actions'
+skl_sel_no_acts = 'Selected objects have no actions'
 
 # part import
 part_no_objs = 'File has no objects'

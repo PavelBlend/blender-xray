@@ -57,7 +57,7 @@ class XRAY_OT_import_group(utils.ie.BaseOperator):
         utils.stats.update('Import *.group')
 
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         import_context = ImportGroupContext()

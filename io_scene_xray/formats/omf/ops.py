@@ -477,9 +477,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
             if not motions_count and not bone_groups_count:
                 self.report(
                     {'ERROR'},
-                    'Object "{}" has no actions and bone groups'.format(
-                        obj.name
-                    )
+                    text.error.omf_has_no_data.format(obj.name)
                 )
                 return {'CANCELLED'}
 

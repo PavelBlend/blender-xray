@@ -75,7 +75,7 @@ class XRAY_OT_import_ogf(
         utils.stats.update('Import *.ogf')
 
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         import_context = ImportOgfContext()

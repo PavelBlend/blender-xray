@@ -128,7 +128,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         self.assertReportsContains(
             'ERROR',
-            re.compile('Cannot find object root')
+            re.compile('Cannot find root-object')
         )
 
     def test_export_without_roots(self):
@@ -148,7 +148,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         self.assertReportsContains(
             'ERROR',
-            re.compile('Cannot find object root')
+            re.compile('Cannot find root-object')
         )
 
     def test_export_two_sided(self):

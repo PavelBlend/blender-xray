@@ -12,6 +12,7 @@ from .. import ie
 from .. import contexts
 from ... import log
 from ... import utils
+from ... import text
 
 
 class ImportDmContext(contexts.ImportMeshContext):
@@ -139,32 +140,36 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        prefs = utils.version.get_preferences()
-        self.texture_name_from_image_path = prefs.dm_texture_names_from_path
+        pref = utils.version.get_preferences()
+        self.texture_name_from_image_path = pref.dm_texture_names_from_path
         objs = context.selected_objects
 
         if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         if len(objs) == 1:
+
             if objs[0].type != 'MESH':
-                self.report({'ERROR'}, 'The select object is not mesh')
+                self.report({'ERROR'}, text.error.dm_no_mesh)
                 return {'CANCELLED'}
+
             else:
                 return bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
+
         else:
             object_list = [obj.name for obj in objs if obj.type == 'MESH']
+
             if not object_list:
-                self.report(
-                    {'ERROR'},
-                    'There are no meshes among the selected objects'
-                )
+                self.report({'ERROR'}, text.error.dm_no_meshes)
                 return {'CANCELLED'}
+
             if len(object_list) == 1:
                 return bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
+
             self.detail_models = ','.join(object_list)
             context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 
@@ -209,8 +214,8 @@ class XRAY_OT_export_dm_file(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):    # pragma: no cover
-        prefs = utils.version.get_preferences()
-        self.texture_name_from_image_path = prefs.dm_texture_names_from_path
+        pref = utils.version.get_preferences()
+        self.texture_name_from_image_path = pref.dm_texture_names_from_path
         objs = [
             obj
             for obj in context.selected_objects
@@ -218,15 +223,15 @@ class XRAY_OT_export_dm_file(
         ]
 
         if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
+            self.report({'ERROR'}, text.error.many_sel_objs)
             return {'CANCELLED'}
 
         if objs[0].type != 'MESH':
-            self.report({'ERROR'}, 'The selected object is not mesh')
+            self.report({'ERROR'}, text.error.dm_no_mesh)
             return {'CANCELLED'}
 
         self.detail_model = objs[0].name

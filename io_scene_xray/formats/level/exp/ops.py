@@ -92,10 +92,7 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         level_objs = get_export_objs(context)
 
         if len(level_objs) > 1:
-            self.report(
-                {'ERROR'},
-                'Too many selected level-objects'
-            )
+            self.report({'ERROR'}, text.error.level_many_objs)
             return {'CANCELLED'}
 
         level_object = level_objs[0]
@@ -107,17 +104,14 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         if not level_object.xray.is_level:
             self.report(
                 {'ERROR'},
-                'Object "{}" does not have level parameter enabled.'.format(
-                    level_object.name
-                )
+                text.error.level_param.format(level_object.name)
             )
             return {'CANCELLED'}
 
         if level_object.xray.level.object_type != 'LEVEL':
             self.report(
                 {'ERROR'},
-                'Object "{0}" has an invalid type: {1}. '
-                'Must be "Level".'.format(
+                text.error.level_invalid_type.format(
                     level_object.name,
                     level_object.xray.level.object_type
                 )

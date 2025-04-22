@@ -224,7 +224,7 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:
-            self.report({'ERROR'}, 'There is no selected object')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         self.objects_list = get_arm_objs()
@@ -306,7 +306,7 @@ class XRAY_OT_export_bones_file(
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:
-            self.report({'ERROR'}, 'There is no selected object')
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         self.objects = get_arm_objs()

@@ -6,6 +6,7 @@ from .. import error
 
 
 translations_table = (
+
     # general
     (error.error_title, 'Ошибка'),
     (error.no_sel_files, 'Нет выделенных файлов'),
@@ -22,6 +23,7 @@ translations_table = (
     (error.file_another_prog, 'Невозможно записать файл. Файл открыт в другой программе'),
     (error.no_active_obj, 'Нет активного объекта'),
     (error.no_selected_obj, 'Нет выделенных объектов'),
+    (error.many_sel_objs, 'Выбрано слишком много объектов'),
     (error.no_blend_obj, 'Текущий blend-файл не имеет объектов'),
     (error.is_not_arm, 'Активный объект не является арматурой'),
     (error.file_not_found, 'Файл не найден'),
@@ -49,6 +51,9 @@ translations_table = (
     # bones import
     (error.bones_many_sel_files, 'Выбрано слишком много файлов. Нужно выделить один файл'),
 
+    # bones export
+    (error.bones_no_sel_arms, 'Не выделены арматуры'),
+
     # details convert
     (error.details_light_1569, 'Объект имеет некорректный формат освещения: "Builds 1096-1558". Должен быть "Builds 1569-CoP"'),
     (error.details_light_1096, 'Объект имеет некорректный формат освещения: "Builds 1569-CoP". Должен быть "Builds 1096-1558"'),
@@ -62,6 +67,10 @@ translations_table = (
     (error.details_no_header, 'Некорректный DETAILS файл. Не найден HEADER блок'),
     (error.details_no_meshes, 'Некорректный DETAILS файл. Не найден MESHES блок'),
     (error.details_no_slots, 'Некорректный DETAILS файл. Не найден SLOTS блок'),
+
+    # details export
+    (error.details_no_obj, 'Не найден details-объект'),
+    (error.details_many_objs, 'Найдено слишком много details-объектов'),
 
     # details utility
     (error.details_has_no_img, 'Level details объект не имеет свойство-изображение'),
@@ -84,6 +93,8 @@ translations_table = (
 
     # dm export
     (error.dm_many_verts, 'Меш-объект имеет слишком много вершин'),
+    (error.dm_no_mesh, 'Выделенный объект не является мешем'),
+    (error.dm_no_meshes, 'Среди выбранных объектов нет мешей'),
 
     # dm validate
     (error.dm_tex_type, 'Текстура имеет некорректный тип'),
@@ -96,6 +107,9 @@ translations_table = (
     (error.cform_unsupport_ver, 'Неподдерживаемая версия level cform формата'),
 
     # level export
+    (error.level_invalid_type, 'Объект "{0}" имеет недопустимый тип: {1}. Должен быть "Level"'),
+    (error.level_many_objs, 'Слишком много выбрано level-объектов'),
+    (error.level_param, 'Объект "{}" не имеет включенного параметра "Level"'),
     (error.level_no_lmap, 'Не найдено изображение для карты освещения'),
     (error.level_has_children, 'Объекты Normal/Progressive не должны иметь потомков'),
     (error.level_lmap_no_dds, 'Некорректный формат карты освещения (должен быть *.dds)'),
@@ -149,6 +163,7 @@ translations_table = (
     (error.object_many_parents, 'Объект-арматура имеет больше одной главной кости'),
     (error.object_no_roots, 'Не найдены root-объекты'),
     (error.object_many_roots, 'Найдено слишком много root-объектов, но ни один не выбран'),
+    (error.object_many_roots_sel, 'Выбрано слишком много root-объектов'),
 
     # object import bone
     (error.object_unsupport_bone_ver, 'Неподдерживаемая версия формата костей'),
@@ -169,6 +184,9 @@ translations_table = (
     # ogf export
     (error.ogf_has_no_arm, 'Скелетный меш-объект не имеет арматуры'),
     (error.ogf_verts_count_limit, 'При сохранении в OGF создано слишком много вершин'),
+    (error.ogf_many_roots, 'Найдено слишком много root-объектов'),
+    (error.ogf_no_root, 'Не найден root-объект'),
+    (error.ogf_no_roots, 'Не найдены root-объекты'),
 
     # omf export
     (error.omf_empty, 'Используйте другой режим экспорта. Этот OMF файл пустой'),
@@ -178,6 +196,7 @@ translations_table = (
     (error.omf_nothing_exp, 'Ничего не экспортируется! Измените настройки экспорта'),
     (error.omf_no_acts, 'Объект-арматура не имеет анимаций'),
     (error.omf_no_bone_groups, 'Объект-арматура не имеет групп костей'),
+    (error.omf_has_no_data, 'Объект "{}" не имеет анимаций и групп костей'),
 
     # omf import
     (error.omf_no_bone, 'Арматура не имеет всех костей, которые есть в OMF файле'),
@@ -204,6 +223,8 @@ translations_table = (
 
     # skls export
     (error.skl_path_conflict, 'Невозможно создать папку, так как существует файл с таким же именем'),
+    (error.skl_active_no_acts, 'Активный объект не имеет анимаций'),
+    (error.skl_sel_no_acts, 'Выделенные объекты не имеют анимаций'),
 
     # part import
     (error.part_no_objs, 'Файл не имеет объектов'),
@@ -225,6 +246,7 @@ translations_table = (
     (error.no_objs_mshs_folder, 'Objects или Meshes папка не указана в настройках аддона'),
     (error.not_inside_objs_mshs_folder, 'Путь не находится внутри Meshes или Objects папки'),
     (error.no_objs, 'Не найдены root-объекты')
+
 )
 
 translation = {}
