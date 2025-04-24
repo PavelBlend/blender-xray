@@ -296,7 +296,8 @@ def dump_p_map(data):
 def dump_children(data, child_fun):
     chunks = ChunkedReader(data).read()
     for child_id, child_data in chunks:
-        child_fun(child_data)
+        print('{}child {}\n'.format('    ' * 2, child_id))
+        child_fun(child_data, 3)
 
 
 def dump_motion_refs_2():
@@ -577,10 +578,12 @@ def test(chunk_id):
     return
 
 
-def dump_ogf_v4(data):
+def dump_ogf_v4(data, tabs_count):
     chunks = ChunkedReader(data).read()
 
     global reader
+    global tabs
+    tabs = tabs_count
 
     subchunks = (
         Chunks_v4.CHILDREN,
@@ -589,6 +592,7 @@ def dump_ogf_v4(data):
     )
 
     for chunk_id, chunk_data in chunks:
+        print('{}chunk {}'.format(tabs_count*'    ', chunk_id))
 
         reader = PackedReader(chunk_data)
 
@@ -668,10 +672,14 @@ def dump_ogf_v4(data):
         if not chunk_id in subchunks:
             reader.readed()
 
+        print()
 
-def dump_ogf_v3(data):
+
+def dump_ogf_v3(data, tabs_count):
     chunks = ChunkedReader(data).read()
     global reader
+    global tabs
+    tabs = tabs_count
 
     subchunks = (
         Chunks_v3.CHILDREN,
@@ -681,6 +689,7 @@ def dump_ogf_v3(data):
     )
 
     for chunk_id, chunk_data in chunks:
+        print('{}chunk {}'.format(tabs_count*'    ', chunk_id))
 
         reader = PackedReader(chunk_data)
 
@@ -751,21 +760,25 @@ def dump_ogf_v3(data):
         if not chunk_id in subchunks:
             reader.readed()
 
+        print()
+
 
 def dump_ogf(data):
     chunks = ChunkedReader(data).read()
     global reader
+    tabs = 1
 
     for chunk_id, chunk_data in chunks:
+
         if chunk_id == 0x1:    # HEADER
             reader = PackedReader(chunk_data)
-            version = read('B', 'version')
+            version = read('B', 'version', out=False)
 
             if version == OGF_VERSION_3:
-                dump_ogf_v3(data)
+                dump_ogf_v3(data, tabs)
 
             elif version == OGF_VERSION_4:
-                dump_ogf_v4(data)
+                dump_ogf_v4(data, tabs)
 
             else:
                 print('unsupported ogf version:', version)
@@ -777,23 +790,28 @@ def dump_ogf(data):
 ###############################################################################
 
 
+tabs = 0
+
+
 def is_end():
     global reader
     return reader.is_end()
 
 
-def read(fmt, name):
+def read(fmt, name, out=True):
     if fmt == 'str':
         value = reader.gets()
     else:
         value = reader.getf('<' + fmt)
         if len(value) == 1:
             value = value[0]
-    # print('{} = {}'.format(name, value))
+    if out:
+        global tabs
+        print('    {}{} = {}'.format(tabs * '    ', name, value))
     return value
 
 
-directory = 'D:\\stalker\\all_builds_gamedata\\'
+directory = '.'
 
 ogf_list = []
 for root, dirs, files in os.walk(directory):
@@ -804,8 +822,13 @@ for root, dirs, files in os.walk(directory):
             path = os.path.abspath(path)
             ogf_list.append(path)
 
-for path in reversed(ogf_list):
+ogf_list.sort()
+
+for path in ogf_list:
     with open(path, 'rb') as file:
         data = file.read()
-    print('dump file: "{}"'.format(path))
+    print('dump file: "{}"\n'.format(path))
     dump_ogf(data)
+    print('\n' * 3)
+
+input()
