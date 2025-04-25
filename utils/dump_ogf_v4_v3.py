@@ -296,7 +296,7 @@ def dump_p_map(data):
 def dump_children(data, child_fun):
     chunks = ChunkedReader(data).read()
     for child_id, child_data in chunks:
-        print('{}child {}\n'.format('    ' * 2, child_id))
+        out('{}child {}\n'.format('    ' * 2, child_id))
         child_fun(child_data, 3)
 
 
@@ -573,11 +573,6 @@ def dump_header_v4():
 ###############################################################################
 
 
-def test(chunk_id):
-    # print(chunk_id)
-    return
-
-
 def dump_ogf_v4(data, tabs_count):
     chunks = ChunkedReader(data).read()
 
@@ -592,7 +587,7 @@ def dump_ogf_v4(data, tabs_count):
     )
 
     for chunk_id, chunk_data in chunks:
-        print('{}chunk {}'.format(tabs_count*'    ', chunk_id))
+        out('{}chunk {}'.format(tabs_count*'    ', chunk_id))
 
         reader = PackedReader(chunk_data)
 
@@ -672,7 +667,7 @@ def dump_ogf_v4(data, tabs_count):
         if not chunk_id in subchunks:
             reader.readed()
 
-        print()
+        out()
 
 
 def dump_ogf_v3(data, tabs_count):
@@ -689,7 +684,7 @@ def dump_ogf_v3(data, tabs_count):
     )
 
     for chunk_id, chunk_data in chunks:
-        print('{}chunk {}'.format(tabs_count*'    ', chunk_id))
+        out('{}chunk {}'.format(tabs_count*'    ', chunk_id))
 
         reader = PackedReader(chunk_data)
 
@@ -760,7 +755,7 @@ def dump_ogf_v3(data, tabs_count):
         if not chunk_id in subchunks:
             reader.readed()
 
-        print()
+        out()
 
 
 def dump_ogf(data):
@@ -772,7 +767,7 @@ def dump_ogf(data):
 
         if chunk_id == 0x1:    # HEADER
             reader = PackedReader(chunk_data)
-            version = read('B', 'version', out=False)
+            version = read('B', 'version', prnt=False)
 
             if version == OGF_VERSION_3:
                 dump_ogf_v3(data, tabs)
@@ -791,6 +786,12 @@ def dump_ogf(data):
 
 
 tabs = 0
+print_info = True
+
+
+def out(*args, **kwargs):
+    if print_info:
+        print(*args, **kwargs)
 
 
 def is_end():
@@ -798,16 +799,16 @@ def is_end():
     return reader.is_end()
 
 
-def read(fmt, name, out=True):
+def read(fmt, name, prnt=True):
     if fmt == 'str':
         value = reader.gets()
     else:
         value = reader.getf('<' + fmt)
         if len(value) == 1:
             value = value[0]
-    if out:
+    if prnt:
         global tabs
-        print('    {}{} = {}'.format(tabs * '    ', name, value))
+        out('    {}{} = {}'.format(tabs * '    ', name, value))
     return value
 
 
@@ -827,8 +828,8 @@ ogf_list.sort()
 for path in ogf_list:
     with open(path, 'rb') as file:
         data = file.read()
-    print('dump file: "{}"\n'.format(path))
+    out('dump file: "{}"\n'.format(path))
     dump_ogf(data)
-    print('\n' * 3)
+    out('\n' * 3)
 
-input()
+input('ok')
