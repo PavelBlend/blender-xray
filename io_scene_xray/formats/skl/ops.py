@@ -440,8 +440,10 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
 
             # export
             try:
-                exp.export_skls_file(filepath, export_context, actions)
-                exp_actions_count += len(actions)
+                acts_count = len(actions)
+                if acts_count:
+                    exp.export_skls_file(filepath, export_context, actions)
+                    exp_actions_count += acts_count
 
             except log.AppError as err:
                 export_context.errors.append(err)
