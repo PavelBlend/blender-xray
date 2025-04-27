@@ -22,7 +22,7 @@ class XRAY_UL_motions_list_item(bpy.types.UIList):
             icon,
             active_data,
             active_propname
-        ):
+        ):    # pragma: no cover
 
         row = layout.row()
 
@@ -445,7 +445,7 @@ class XRAY_OT_motions_browser_select(BaseBrowserOperator):
             for anim in browser.animations:
                 anim.select = select_state
 
-        elif self.mode == 'INVERT':
+        else:    # invert
             for anim in browser.animations:
                 anim.select = not anim.select
 
@@ -482,7 +482,7 @@ class XRAY_OT_motions_browser_import(BaseBrowserOperator):
         elif self.mode in ('ALL'):
             for anim in browser.animations:
                 anims.append(anim.name)
-        elif self.mode in ('ACTIVE'):
+        else:    # active
             anim = browser.animations[browser.animations_index]
             anims.append(anim.name)
 
