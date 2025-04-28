@@ -256,6 +256,13 @@ class XRAY_OT_browse_motions_file(BaseBrowserOperator):
     # pure python hold variable of .skls/.omf file buffer instance
     motions_file = None
 
+    def draw(self, context):    # pragma: no cover
+        browser = context.active_object.xray.motions_browser
+        if browser.file_format == 'SKLS':
+            utils.ie.open_imp_exp_folder(self, 'objects_folder')
+        else:
+            utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
     def execute(self, context):
         if not os.path.exists(self.filepath):
             self.report({'ERROR'}, 'File not found: {}'.format(self.filepath))
