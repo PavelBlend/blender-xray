@@ -8,6 +8,7 @@ import mathutils
 
 # addon modules
 from . import verts
+from . import indices
 from .. import fmt
 from ... import omf
 from ... import motions
@@ -151,7 +152,7 @@ def _export_child(
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
     # write vertices chunk
-    vertices_count = verts.write_verts(
+    verts_count = verts.write_verts(
         context,
         bpy_obj,
         vertices,
@@ -161,30 +162,10 @@ def _export_child(
     )
 
     # write indices chunk
-    indices_writer = rw.write.PackedWriter()
-
-    indices_count = 3 * len(triangles)
-    if two_sided:
-        indices_count *= 2
-    indices_writer.putf('<I', indices_count)
-
-    for tris in triangles:
-        indices_writer.putf('<3H', tris[0], tris[2], tris[1])
-
-    if two_sided:
-        offset = vertices_count // 2
-        for tris in triangles:
-            indices_writer.putf(
-                '<3H',
-                offset + tris[1],
-                offset + tris[2],
-                offset + tris[0]
-            )
+    indices.write_indices(triangles, two_sided, chunked_writer, verts_count)
 
     # remove temp mesh
     bpy.data.meshes.remove(bpy_mesh)
-
-    chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
 def _write_header_bounds(obj, header_writer):

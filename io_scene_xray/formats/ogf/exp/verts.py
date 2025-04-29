@@ -245,15 +245,15 @@ def write_verts(
     ):
 
     vertices_writer = rw.write.PackedWriter()
-    vertices_count = len(vertices)
+    verts_count = len(vertices)
     if two_sided:
-        vertices_count *= 2
+        verts_count *= 2
 
-    if vertices_count > fmt.VERTS_COUNT_LIMIT:
+    if verts_count > fmt.VERTS_COUNT_LIMIT:
         raise log.AppError(
             text.error.ogf_verts_count_limit,
             log.props(
-                vertices_count=vertices_count,
+                vertices_count=verts_count,
                 vertices_count_limit=fmt.VERTS_COUNT_LIMIT,
                 object=bpy_obj.name
             )
@@ -266,7 +266,7 @@ def write_verts(
         else:
             vert_fmt = fmt.VertexFormat.FVF_1L_CS
 
-        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        vertices_writer.putf('<2I', vert_fmt, verts_count)
         write_verts_1l(vertices_writer, vertices)
 
         if two_sided:
@@ -284,7 +284,7 @@ def write_verts(
         else:
             vert_fmt = fmt.VertexFormat.FVF_2L_CS
 
-        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        vertices_writer.putf('<2I', vert_fmt, verts_count)
         write_verts_2l(vertices_writer, vertices)
 
         if two_sided:
@@ -294,7 +294,7 @@ def write_verts(
     elif vertex_max_weights == 3:
         vert_fmt = fmt.VertexFormat.FVF_3L_CS
 
-        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        vertices_writer.putf('<2I', vert_fmt, verts_count)
         write_verts_3l(vertices_writer, vertices)
 
         if two_sided:
@@ -304,7 +304,7 @@ def write_verts(
     else:
         vert_fmt = fmt.VertexFormat.FVF_4L_CS
 
-        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        vertices_writer.putf('<2I', vert_fmt, verts_count)
         write_verts_4l(vertices_writer, vertices)
 
         if two_sided:
@@ -312,4 +312,4 @@ def write_verts(
 
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
-    return vertices_count
+    return verts_count
