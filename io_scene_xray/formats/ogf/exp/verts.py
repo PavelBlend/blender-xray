@@ -311,3 +311,5 @@ def write_verts(
             write_verts_4l(vertices_writer, vertices, norm_coef=-1)
 
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
+
+    return vertices_count

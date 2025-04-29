@@ -151,7 +151,7 @@ def _export_child(
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
     # write vertices chunk
-    verts.write_verts(
+    vertices_count = verts.write_verts(
         context,
         bpy_obj,
         vertices,
