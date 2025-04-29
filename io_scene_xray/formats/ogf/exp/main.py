@@ -99,14 +99,16 @@ def search_material(bpy_obj):
     return material, two_sided
 
 
-def _export_child(
-        root_obj,
-        bpy_obj,
-        chunked_writer,
-        context,
-        vertex_groups_map
-    ):
+def write_tex(texture_path, material, chunked_writer):
+    texture_writer = rw.write.PackedWriter()
 
+    texture_writer.puts(texture_path)
+    texture_writer.puts(material.xray.eshader)
+
+    chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)
+
+
+def get_temp_mesh(root_obj, bpy_obj):
     modifiers = [
         mod
         for mod in bpy_obj.modifiers
@@ -120,42 +122,31 @@ def _export_child(
     )
 
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
+
     bpy_mesh = bpy.data.meshes.new('.export-ogf')
     if not utils.version.IS_41:
         bpy_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
         bpy_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+
     mesh.to_mesh(bpy_mesh)
 
-    # write header chunk
-    write_header_child(mesh, chunked_writer)
+    return bpy_mesh, mesh
 
-    # search material
-    material, two_sided = search_material(bpy_obj)
 
-    # generate texture path
-    texture_path = utils.material.get_image_relative_path(
-        material,
-        context,
-        no_err=False
-    )
-
-    # write texture chunk
-    texture_writer = rw.write.PackedWriter()
-    texture_writer.puts(texture_path)
-    texture_writer.puts(material.xray.eshader)
-    chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)
-
-    # collect geometry data
+def collect_geom(bpy_mesh, mesh, vertex_groups_map):
     uv_layer = mesh.loops.layers.uv.active
     weight_layer = mesh.verts.layers.deform.verify()
     bpy_mesh.calc_tangents(uvmap=uv_layer.name)
+
     vertices = []
     triangles = []
     vertices_map = {}
+
     vertex_max_weights = 0
 
     for face in mesh.faces:
         face_indices = []
+
         for loop_index, loop in enumerate(face.loops):
             bpy_loop = bpy_mesh.loops[face.index * 3 + loop_index]
             uv = loop[uv_layer].uv
@@ -182,14 +173,53 @@ def _export_child(
                 tuple(weights)
             )
             vertex_index = vertices_map.get(vertex)
+
             if vertex_index is None:
                 vertices_map[vertex] = vertex_index = len(vertices)
                 vertices.append(vertex)
+
             face_indices.append(vertex_index)
 
         triangles.append(face_indices)
 
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
+
+    return vertices, triangles, vertex_max_weights
+
+
+def _export_child(
+        root_obj,
+        bpy_obj,
+        chunked_writer,
+        context,
+        vertex_groups_map
+    ):
+
+    # get export mesh
+    bpy_mesh, mesh = get_temp_mesh(root_obj, bpy_obj)
+
+    # write header chunk
+    write_header_child(mesh, chunked_writer)
+
+    # search material
+    material, two_sided = search_material(bpy_obj)
+
+    # generate texture path
+    texture_path = utils.material.get_image_relative_path(
+        material,
+        context,
+        no_err=False
+    )
+
+    # write texture chunk
+    write_tex(texture_path, material, chunked_writer)
+
+    # collect geometry data
+    vertices, triangles, vertex_max_weights = collect_geom(
+        bpy_mesh,
+        mesh,
+        vertex_groups_map
+    )
 
     # write vertices chunk
     verts_count = verts.write_verts(
@@ -206,6 +236,7 @@ def _export_child(
 
     # remove temp mesh
     bpy.data.meshes.remove(bpy_mesh)
+    mesh.free()
 
 
 def _write_header_bounds(obj, header_writer):
