@@ -620,6 +620,14 @@ def reg_bone(bones, bones_map, bone, adv):
     return bone_index
 
 
+def _remove_child_objs(remove_child_objects, child_objects):
+    if remove_child_objects:
+        for child_object in child_objects:
+            child_mesh = child_object.data
+            bpy.data.objects.remove(child_object)
+            bpy.data.meshes.remove(child_mesh)
+
+
 def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
     if utils.obj.is_helper_object(bpy_obj):
         return
@@ -691,20 +699,25 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
             remove_child_objects = True
         else:
             child_objects.append(bpy_obj)
+
         for child_object in child_objects:
             mesh_writer = rw.write.ChunkedWriter()
-            _export_child(
-                root_obj,
-                child_object,
-                mesh_writer,
-                context,
-                vertex_groups_map
-            )
+
+            try:
+                _export_child(
+                    root_obj,
+                    child_object,
+                    mesh_writer,
+                    context,
+                    vertex_groups_map
+                )
+            except log.AppError as err:
+                _remove_child_objs(remove_child_objects, child_objects)
+                raise err
+
             meshes.append(mesh_writer)
-            if remove_child_objects:
-                child_mesh = child_object.data
-                bpy.data.objects.remove(child_object)
-                bpy.data.meshes.remove(child_mesh)
+
+        _remove_child_objs(remove_child_objects, child_objects)
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':
