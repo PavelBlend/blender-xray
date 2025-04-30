@@ -158,6 +158,12 @@ class Logger:
             group = context
 
             while group and group.lightweight:
+
+                # correct count info
+                for key, value in group.data.items():
+                    if type(value) == list:
+                        group.data[key] = value[0]
+
                 data.update(group.data)
                 group = group.parent
 
