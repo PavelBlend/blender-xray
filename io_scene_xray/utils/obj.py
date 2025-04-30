@@ -216,6 +216,13 @@ def apply_obj_modifier(mod, context=None):
         pass
 
 
+def _remove_copy_objs(objs):
+    for obj in objs:
+        mesh = obj.data
+        version.remove_object(obj)
+        bpy.data.meshes.remove(mesh)
+
+
 def merge_meshes(mesh_objects, arm_obj):
     objects = []
     override = bpy.context.copy()
@@ -224,6 +231,7 @@ def merge_meshes(mesh_objects, arm_obj):
 
         # check uv layers
         if not len(bpy_obj.data.uv_layers):
+            _remove_copy_objs(objects)
             raise log.AppError(
                 text.error.no_uv,
                 log.props(object=bpy_obj.name)
@@ -248,12 +256,14 @@ def merge_meshes(mesh_objects, arm_obj):
 
         for mat_name, faces_indices in face_materials.items():
             if faces_indices and mat_name is None:
+                _remove_copy_objs(objects)
                 raise log.AppError(
                     text.error.obj_empty_mat,
                     log.props(object=bpy_obj.name)
                 )
 
         if not face_materials:
+            _remove_copy_objs(objects)
             raise log.AppError(
                 text.error.obj_no_mat,
                 log.props(object=bpy_obj.name)
