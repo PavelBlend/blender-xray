@@ -221,6 +221,8 @@ def merge_meshes(mesh_objects, arm_obj):
     override = bpy.context.copy()
 
     for bpy_obj in mesh_objects:
+
+        # check uv layers
         if not len(bpy_obj.data.uv_layers):
             raise log.AppError(
                 text.error.no_uv,
@@ -232,6 +234,29 @@ def merge_meshes(mesh_objects, arm_obj):
                 text.warn.obj_many_uv,
                 exported_uv=bpy_obj.data.uv_layers.active.name,
                 mesh_object=bpy_obj.name
+            )
+
+        # check materials
+        face_materials = {
+            material.name if material else None: [
+                face_index
+                for face_index, face in enumerate(bpy_obj.data.polygons)
+                    if face.material_index == mat_index
+            ]
+            for mat_index, material in enumerate(bpy_obj.data.materials)
+        }
+
+        for mat_name, faces_indices in face_materials.items():
+            if faces_indices and mat_name is None:
+                raise log.AppError(
+                    text.error.obj_empty_mat,
+                    log.props(object=bpy_obj.name)
+                )
+
+        if not face_materials:
+            raise log.AppError(
+                text.error.obj_no_mat,
+                log.props(object=bpy_obj.name)
             )
 
         ie.validate_vertex_weights(bpy_obj, arm_obj)
