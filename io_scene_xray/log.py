@@ -120,8 +120,14 @@ class Logger:
                         line = '{0}: "{1}"'.format(line, prop)
 
                     # list
+                    elif type(prop) == list:
+                        if len(prop) == 1 and type(prop[0]) == int:
+                            line = '{0}: [{1}x]'.format(line, prop[0])
+                        else:
+                            line = '{0}: "{1}"'.format(line, prop)
+
                     else:
-                        line = '{0}: [{1}x]'.format(line, prop[0])
+                        line = '{0}: "{1}"'.format(line, prop)
 
                 else:
                     self.lines.append(' ' + line)
@@ -162,7 +168,8 @@ class Logger:
                 # correct count info
                 for key, value in group.data.items():
                     if type(value) == list:
-                        group.data[key] = value[0]
+                        if len(value) == 1 and type(value[0]) == int:
+                            group.data[key] = value[0]
 
                 data.update(group.data)
                 group = group.parent

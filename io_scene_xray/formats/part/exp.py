@@ -53,7 +53,7 @@ def _write_objects(lines, objs):
             raise log.AppError(
                 text.error.part_no_space,
                 log.props(
-                    objects_count=len(obj_names),
+                    objects_count=[len(obj_names), ],
                     objects=obj_names,
                     objects_paths=obj_paths
                 )

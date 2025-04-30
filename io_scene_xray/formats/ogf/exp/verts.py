@@ -253,9 +253,9 @@ def write_verts(
         raise log.AppError(
             text.error.ogf_verts_count_limit,
             log.props(
+                object=bpy_obj.name,
                 vertices_count=verts_count,
-                vertices_count_limit=fmt.VERTS_COUNT_LIMIT,
-                object=bpy_obj.name
+                vertices_count_limit=fmt.VERTS_COUNT_LIMIT
             )
         )
 
