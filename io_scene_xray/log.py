@@ -9,7 +9,7 @@ from . import text
 
 
 LOG_FILE_NAME = 'xray_log'
-HISTORY_FILE_NAME = 'xray_log_history'
+HISTORY_FILE_NAME = LOG_FILE_NAME + '_history'
 CONTEXT_NAME = '@context'
 _logger = None
 _context = None

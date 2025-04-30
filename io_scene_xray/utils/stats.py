@@ -10,7 +10,7 @@ from . import version
 
 statistics = None
 STATS_FILE_NAME = 'xray_stats'
-HISTORY_FILE_NAME = 'xray_stats_history'
+HISTORY_FILE_NAME = STATS_FILE_NAME + '_history'
 
 
 class Statistics:
