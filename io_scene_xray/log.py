@@ -110,13 +110,18 @@ class Logger:
                     if line.endswith('.'):
                         line = line[ : -1]
                     self.lines.append(' ' + line)
+
+                    # int
                     if type(prop) == int:
                         line = '{0}: {1}'.format(line, prop)
+
+                    # str
+                    elif type(prop) == str:
+                        line = '{0}: "{1}"'.format(line, prop)
+
+                    # list
                     else:
-                        if type(prop) == str and prop.isdigit():
-                            line = '{0}: [{1}x]'.format(line, prop)
-                        else:
-                            line = '{0}: "{1}"'.format(line, prop)
+                        line = '{0}: [{1}x]'.format(line, prop[0])
 
                 else:
                     self.lines.append(' ' + line)
@@ -221,9 +226,8 @@ class Logger:
 
         generate_log = False
         if has_massages:
-            if general_log:
-                if is_last_flush:
-                    generate_log = True
+            if general_log and is_last_flush:
+                generate_log = True
             else:
                 generate_log = True
 

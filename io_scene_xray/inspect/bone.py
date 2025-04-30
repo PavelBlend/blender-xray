@@ -27,7 +27,7 @@ def check_bone_names(armature_object):
         raise log.AppError(
             text.error.object_duplicate_bones,
             log.props(
-                count=str(sum(map(len, bone_duplicates))),
+                count=[sum(map(len, bone_duplicates)), ],
                 bones=bone_duplicates
             )
         )

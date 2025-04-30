@@ -415,7 +415,7 @@ class ObjectExporterMeshes:
                 mesh_names = [mesh.name for mesh in self.armature_meshes]
                 log.warn(
                     text.warn.object_merged,
-                    count=str(len(mesh_names)),
+                    count=[len(mesh_names), ],
                     objects=mesh_names
                 )
 
