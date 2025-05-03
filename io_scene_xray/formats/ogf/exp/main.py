@@ -516,6 +516,17 @@ def _remove_child_objs(remove_child_objects, child_objects):
             bpy.data.meshes.remove(child_mesh)
 
 
+def _scan_arm(bpy_obj, arms, bones, bones_map):
+    arms.append(bpy_obj)
+
+    for bone in bpy_obj.data.bones:
+
+        if not utils.bone.is_exportable_bone(bone):
+            continue
+
+        reg_bone(bones, bones_map, bone, bpy_obj)
+
+
 def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
     if utils.obj.is_helper_object(bpy_obj):
         return
@@ -609,11 +620,7 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':
-        arms.append(bpy_obj)
-        for bone in bpy_obj.data.bones:
-            if not utils.bone.is_exportable_bone(bone):
-                continue
-            reg_bone(bones, bones_map, bone, bpy_obj)
+        _scan_arm(bpy_obj, arms, bones, bones_map)
 
 
 def _get_arm_scale(root_obj, arm_obj):
