@@ -3,14 +3,8 @@ import bpy
 import bmesh
 
 # addon modules
-from . import header
-from . import tex
-from . import verts
-from . import indices
 from . import bone
-from . import ik
-from . import motion
-from . import prop
+from . import write
 from .. import fmt
 from .... import text
 from .... import inspect
@@ -98,44 +92,20 @@ def collect_geom(bpy_mesh, mesh, vertex_groups_map):
     return vertices, triangles, vertex_max_weights
 
 
-def _write_child(obj, writer, ctx, mesh, vertices, triangles, max_wght):
-
-    # header
-    header.write_header_child(mesh, writer)
-
-    # texture
-    two_sided = tex.write_tex(obj, ctx, writer)
-
-    # vertices
-    vcount = verts.write_verts(ctx, obj, vertices, two_sided, max_wght, writer)
-
-    # indices
-    indices.write_indices(triangles, two_sided, writer, vcount)
-
-
 def _export_child(root_obj, bpy_obj, writer, ctx, vgroups_map):
 
     # get export mesh
     bpy_mesh, mesh = get_temp_mesh(root_obj, bpy_obj)
 
     # collect geometry data
-    vertices, triangles, max_wght = collect_geom(bpy_mesh, mesh, vgroups_map)
+    vertices, tris, max_wght = collect_geom(bpy_mesh, mesh, vgroups_map)
 
     # write
-    _write_child(bpy_obj, writer, ctx, mesh, vertices, triangles, max_wght)
+    write.write_child(bpy_obj, writer, ctx, mesh, vertices, tris, max_wght)
 
     # remove temp mesh
     bpy.data.meshes.remove(bpy_mesh)
     mesh.free()
-
-
-def _write_children(meshes, ogf_writer):
-    children_writer = rw.write.ChunkedWriter()
-
-    for child_index, mesh_writer in enumerate(meshes):
-        children_writer.put(child_index, mesh_writer)
-
-    ogf_writer.put(fmt.Chunks_v4.CHILDREN, children_writer)
 
 
 def _remove_child_objs(remove_child_objects, child_objects):
@@ -277,37 +247,7 @@ def _get_arm(root_obj, arms):
     return arm_obj
 
 
-def _write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale):
-
-    # header
-    header.write_header(root_obj, ogf_writer, ctx)
-
-    # revision
-    prop.write_revision(root_obj, ogf_writer)
-
-    # children
-    _write_children(meshes, ogf_writer)
-
-    # bone names
-    bone.write_bone_names(bones, scale, ogf_writer)
-
-    # ik data
-    ik.write_ik_data(arm_obj, bones, scale, ogf_writer)
-
-    # user data
-    prop.write_userdata(root_obj, ogf_writer)
-
-    # motion references
-    motion.write_motion_refs(root_obj, ctx, ogf_writer)
-
-    # motions
-    motion.write_motions(root_obj.xray, ctx, arm_obj, ogf_writer)
-
-    # lod
-    prop.write_lod(root_obj, ogf_writer)
-
-
-def _export_main(root_obj, ogf_writer, ctx):
+def _export_main(root_obj, writer, ctx):
 
     meshes = []
     arms = []
@@ -328,7 +268,7 @@ def _export_main(root_obj, ogf_writer, ctx):
     scale = _get_arm_scale(root_obj, arm_obj)
 
     # write
-    _write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale)
+    write.write_skeleton(root_obj, arm_obj, writer, ctx, meshes, bones, scale)
 
 
 @log.with_context('export-ogf')
