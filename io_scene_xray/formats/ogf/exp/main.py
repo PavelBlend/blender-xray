@@ -614,7 +614,7 @@ def _scan_arm(bpy_obj, arms, bones, bones_map):
         reg_bone(bones, bones_map, bone, bpy_obj)
 
 
-def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
+def _scan_obj(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
     if utils.obj.is_helper_object(bpy_obj):
         return
 
@@ -657,7 +657,7 @@ def _export_main(root_obj, ogf_writer, context):
 
     exp_objs = utils.obj.get_exp_objs(context, root_obj)
     for obj in exp_objs:
-        scan_root(obj, root_obj, meshes, arms, bones, bones_map, context)
+        _scan_obj(obj, root_obj, meshes, arms, bones, bones_map, context)
 
     # get armature
     arm_obj = _get_arm(root_obj, arms)
