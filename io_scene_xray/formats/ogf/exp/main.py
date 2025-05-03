@@ -3,6 +3,7 @@ import bpy
 import bmesh
 
 # addon modules
+from . import arm
 from . import bone
 from . import write
 from .. import fmt
@@ -203,17 +204,6 @@ def _scan_mesh(ctx, bpy_obj, root_obj, meshes, bones, bones_map):
     _remove_child_objs(remove_child_objects, child_objects)
 
 
-def _scan_arm(bpy_obj, arms, bones, bones_map):
-    arms.append(bpy_obj)
-
-    for bpy_bone in bpy_obj.data.bones:
-
-        if not utils.bone.is_exportable_bone(bpy_bone):
-            continue
-
-        bone.reg_bone(bones, bones_map, bpy_bone, bpy_obj)
-
-
 def _scan_obj(bpy_obj, root_obj, meshes, arms, bones, bones_map, ctx):
     if utils.obj.is_helper_object(bpy_obj):
         return
@@ -224,27 +214,7 @@ def _scan_obj(bpy_obj, root_obj, meshes, arms, bones, bones_map, ctx):
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':
-        _scan_arm(bpy_obj, arms, bones, bones_map)
-
-
-def _get_arm_scale(root_obj, arm_obj):
-    _, scale_vec = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
-    scale = utils.ie.check_armature_scale(scale_vec, root_obj, arm_obj)
-    return scale
-
-
-def _get_arm(root_obj, arms):
-    if len(arms) > 1:
-        raise log.AppError(
-            text.error.object_many_arms,
-            log.props(
-                root_object=root_obj.name,
-                armatures=[arm.name for arm in arms]
-            )
-        )
-
-    arm_obj = arms[0]
-    return arm_obj
+        arm.scan_arm(bpy_obj, arms, bones, bones_map)
 
 
 def _export_main(root_obj, writer, ctx):
@@ -259,13 +229,13 @@ def _export_main(root_obj, writer, ctx):
         _scan_obj(obj, root_obj, meshes, arms, bones, bones_map, ctx)
 
     # get armature
-    arm_obj = _get_arm(root_obj, arms)
+    arm_obj = arm.get_arm(root_obj, arms)
 
     # check bone names
     inspect.bone.check_bone_names(arm_obj)
 
     # get armature scale
-    scale = _get_arm_scale(root_obj, arm_obj)
+    scale = arm.get_arm_scale(root_obj, arm_obj)
 
     # write
     write.write_skeleton(root_obj, arm_obj, writer, ctx, meshes, bones, scale)
