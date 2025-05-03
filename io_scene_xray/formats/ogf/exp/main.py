@@ -516,6 +516,93 @@ def _remove_child_objs(remove_child_objects, child_objects):
             bpy.data.meshes.remove(child_mesh)
 
 
+def _scan_mesh(context, bpy_obj, root_obj, meshes, bones, bones_map):
+    arm_obj = utils.obj.get_armature_object(bpy_obj)
+    if not arm_obj:
+        raise log.AppError(
+            text.error.ogf_has_no_arm,
+            log.props(object=bpy_obj.name)
+        )
+
+    # check vertex weights
+    utils.ie.validate_vertex_weights(bpy_obj, arm_obj)
+
+    # check uv-maps
+    uv_layers = bpy_obj.data.uv_layers
+    if not len(uv_layers):
+        raise log.AppError(
+            text.error.no_uv,
+            log.props(object=bpy_obj.name)
+        )
+    elif len(uv_layers) > 1:
+        log.warn(
+            text.warn.obj_many_uv,
+            exported_uv=uv_layers.active.name,
+            mesh_object=bpy_obj.name
+        )
+
+    # collect vertex groups
+    vertex_groups_map = {}
+
+    for group_index, group in enumerate(bpy_obj.vertex_groups):
+        bone = arm_obj.data.bones.get(group.name, None)
+
+        if bone is None:
+            continue
+
+        if not utils.bone.is_exportable_bone(bone):
+            continue
+
+        vertex_groups_map[group_index] = reg_bone(
+            bones,
+            bones_map,
+            bone,
+            arm_obj
+        )
+
+    child_objects = []
+    remove_child_objects = False
+    if len(bpy_obj.material_slots) > 1:
+        # separate by materials
+        bpy.ops.object.select_all(action='DESELECT')
+        multi_material_mesh = bpy_obj.data.copy()
+        multi_material_object = bpy_obj.copy()
+        multi_material_object.data = multi_material_mesh
+        utils.version.link_object(multi_material_object)
+        utils.version.set_active_object(multi_material_object)
+        temp_parent_object = bpy.data.objects.new('!-temp-parent-object', None)
+        utils.version.link_object(temp_parent_object)
+        multi_material_object.parent = temp_parent_object
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.separate(type='MATERIAL')
+        bpy.ops.object.mode_set(mode='OBJECT')
+        for child_object in temp_parent_object.children:
+            child_objects.append(child_object)
+        bpy.data.objects.remove(temp_parent_object)
+        remove_child_objects = True
+    else:
+        child_objects.append(bpy_obj)
+
+    for child_object in child_objects:
+        mesh_writer = rw.write.ChunkedWriter()
+
+        try:
+            _export_child(
+                root_obj,
+                child_object,
+                mesh_writer,
+                context,
+                vertex_groups_map
+            )
+        except log.AppError as err:
+            _remove_child_objs(remove_child_objects, child_objects)
+            raise err
+
+        meshes.append(mesh_writer)
+
+    _remove_child_objs(remove_child_objects, child_objects)
+
+
 def _scan_arm(bpy_obj, arms, bones, bones_map):
     arms.append(bpy_obj)
 
@@ -533,90 +620,7 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
 
     # scan mesh
     if bpy_obj.type == 'MESH':
-        arm_obj = utils.obj.get_armature_object(bpy_obj)
-        if not arm_obj:
-            raise log.AppError(
-                text.error.ogf_has_no_arm,
-                log.props(object=bpy_obj.name)
-            )
-
-        # check vertex weights
-        utils.ie.validate_vertex_weights(bpy_obj, arm_obj)
-
-        # check uv-maps
-        uv_layers = bpy_obj.data.uv_layers
-        if not len(uv_layers):
-            raise log.AppError(
-                text.error.no_uv,
-                log.props(object=bpy_obj.name)
-            )
-        elif len(uv_layers) > 1:
-            log.warn(
-                text.warn.obj_many_uv,
-                exported_uv=uv_layers.active.name,
-                mesh_object=bpy_obj.name
-            )
-
-        # collect vertex groups
-        vertex_groups_map = {}
-
-        for group_index, group in enumerate(bpy_obj.vertex_groups):
-            bone = arm_obj.data.bones.get(group.name, None)
-
-            if bone is None:
-                continue
-
-            if not utils.bone.is_exportable_bone(bone):
-                continue
-
-            vertex_groups_map[group_index] = reg_bone(
-                bones,
-                bones_map,
-                bone,
-                arm_obj
-            )
-
-        child_objects = []
-        remove_child_objects = False
-        if len(bpy_obj.material_slots) > 1:
-            # separate by materials
-            bpy.ops.object.select_all(action='DESELECT')
-            multi_material_mesh = bpy_obj.data.copy()
-            multi_material_object = bpy_obj.copy()
-            multi_material_object.data = multi_material_mesh
-            utils.version.link_object(multi_material_object)
-            utils.version.set_active_object(multi_material_object)
-            temp_parent_object = bpy.data.objects.new('!-temp-parent-object', None)
-            utils.version.link_object(temp_parent_object)
-            multi_material_object.parent = temp_parent_object
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.separate(type='MATERIAL')
-            bpy.ops.object.mode_set(mode='OBJECT')
-            for child_object in temp_parent_object.children:
-                child_objects.append(child_object)
-            bpy.data.objects.remove(temp_parent_object)
-            remove_child_objects = True
-        else:
-            child_objects.append(bpy_obj)
-
-        for child_object in child_objects:
-            mesh_writer = rw.write.ChunkedWriter()
-
-            try:
-                _export_child(
-                    root_obj,
-                    child_object,
-                    mesh_writer,
-                    context,
-                    vertex_groups_map
-                )
-            except log.AppError as err:
-                _remove_child_objs(remove_child_objects, child_objects)
-                raise err
-
-            meshes.append(mesh_writer)
-
-        _remove_child_objs(remove_child_objects, child_objects)
+        _scan_mesh(context, bpy_obj, root_obj, meshes, bones, bones_map)
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':
