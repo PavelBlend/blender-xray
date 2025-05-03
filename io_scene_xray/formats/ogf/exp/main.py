@@ -7,9 +7,10 @@ import bmesh
 import mathutils
 
 # addon modules
-from . import ik
+from . import header
 from . import verts
 from . import indices
+from . import ik
 from .. import fmt
 from ... import omf
 from ... import motions
@@ -18,33 +19,6 @@ from .... import inspect
 from .... import rw
 from .... import log
 from .... import utils
-
-
-FIRST_SHADER = 0
-
-
-def write_header_child(mesh, chunked_writer):
-    # calculate bbox and bsphere
-    bbox_min, bbox_max = utils.mesh.calculate_mesh_bbox(mesh.verts)
-    bsph_ctr, bsph_rad = utils.mesh.calculate_mesh_bsphere(
-        (bbox_min, bbox_max),
-        mesh.verts
-    )
-
-    # create writer
-    header_writer = rw.write.PackedWriter()
-
-    # write
-    header_writer.putf('<B', fmt.FORMAT_VERSION_4)
-    header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
-    header_writer.putf('<H', FIRST_SHADER)
-    header_writer.putv3f(bbox_min)
-    header_writer.putv3f(bbox_max)
-    header_writer.putv3f(bsph_ctr)
-    header_writer.putf('<f', bsph_rad)
-
-    # write chunk
-    chunked_writer.put(fmt.HEADER, header_writer)
 
 
 def search_material(bpy_obj):
@@ -200,7 +174,7 @@ def _export_child(
     bpy_mesh, mesh = get_temp_mesh(root_obj, bpy_obj)
 
     # write header chunk
-    write_header_child(mesh, chunked_writer)
+    header.write_header_child(mesh, chunked_writer)
 
     # search material
     material, two_sided = search_material(bpy_obj)
@@ -238,46 +212,6 @@ def _export_child(
     # remove temp mesh
     bpy.data.meshes.remove(bpy_mesh)
     mesh.free()
-
-
-def _write_header_bounds(obj, header_writer):
-    # get bounds
-    (b_min, b_max), (cntr, rad) = utils.mesh.calculate_bbox_and_bsphere(obj)
-
-    # bbox
-    header_writer.putv3f(b_min)    # min bbox
-    header_writer.putv3f(b_max)    # max bbox
-
-    # bsphere
-    header_writer.putv3f(cntr)    # bsphere center
-    header_writer.putf('<f', rad)    # bsphere radius
-
-
-def _write_header_base(obj, header_writer, context):
-    model_type = _get_model_type(obj.xray, context)
-    header_writer.putf('<2BH', fmt.FORMAT_VERSION_4, model_type, FIRST_SHADER)
-
-
-def _write_header(root_obj, ogf_writer, context):
-    header_writer = rw.write.PackedWriter()
-
-    _write_header_base(root_obj, header_writer, context)
-    _write_header_bounds(root_obj, header_writer)
-
-    ogf_writer.put(fmt.HEADER, header_writer)
-
-
-def _get_model_type(xray, context):
-    if len(xray.motionrefs_collection):
-        model_type = fmt.ModelType_v4.SKELETON_ANIM
-
-    elif len(xray.motions_collection) and context.export_motions:
-        model_type = fmt.ModelType_v4.SKELETON_ANIM
-
-    else:
-        model_type = fmt.ModelType_v4.SKELETON_RIGID
-
-    return model_type
 
 
 def _write_revision(obj, ogf_writer):
@@ -669,7 +603,7 @@ def _export_main(root_obj, ogf_writer, context):
     scale = _get_arm_scale(root_obj, arm_obj)
 
     # write
-    _write_header(root_obj, ogf_writer, context)
+    header.write_header(root_obj, ogf_writer, context)
     _write_revision(root_obj, ogf_writer)
     _write_children(meshes, ogf_writer)
     _write_bone_names(bones, scale, ogf_writer)
