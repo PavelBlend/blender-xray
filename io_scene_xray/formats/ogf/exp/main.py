@@ -98,42 +98,31 @@ def collect_geom(bpy_mesh, mesh, vertex_groups_map):
     return vertices, triangles, vertex_max_weights
 
 
-def _export_child(
-        root_obj,
-        bpy_obj,
-        chunked_writer,
-        context,
-        vertex_groups_map
-    ):
+def _write_child(obj, writer, ctx, mesh, vertices, triangles, max_wght):
+
+    # header
+    header.write_header_child(mesh, writer)
+
+    # texture
+    two_sided = tex.write_tex(obj, ctx, writer)
+
+    # vertices
+    vcount = verts.write_verts(ctx, obj, vertices, two_sided, max_wght, writer)
+
+    # indices
+    indices.write_indices(triangles, two_sided, writer, vcount)
+
+
+def _export_child(root_obj, bpy_obj, writer, ctx, vgroups_map):
 
     # get export mesh
     bpy_mesh, mesh = get_temp_mesh(root_obj, bpy_obj)
 
-    # write header chunk
-    header.write_header_child(mesh, chunked_writer)
-
-    # write texture chunk
-    two_sided = tex.write_tex(bpy_obj, context, chunked_writer)
-
     # collect geometry data
-    vertices, triangles, vertex_max_weights = collect_geom(
-        bpy_mesh,
-        mesh,
-        vertex_groups_map
-    )
+    vertices, triangles, max_wght = collect_geom(bpy_mesh, mesh, vgroups_map)
 
-    # write vertices chunk
-    verts_count = verts.write_verts(
-        context,
-        bpy_obj,
-        vertices,
-        two_sided,
-        vertex_max_weights,
-        chunked_writer
-    )
-
-    # write indices chunk
-    indices.write_indices(triangles, two_sided, chunked_writer, verts_count)
+    # write
+    _write_child(bpy_obj, writer, ctx, mesh, vertices, triangles, max_wght)
 
     # remove temp mesh
     bpy.data.meshes.remove(bpy_mesh)
@@ -157,7 +146,7 @@ def _remove_child_objs(remove_child_objects, child_objects):
             bpy.data.meshes.remove(child_mesh)
 
 
-def _scan_mesh(context, bpy_obj, root_obj, meshes, bones, bones_map):
+def _scan_mesh(ctx, bpy_obj, root_obj, meshes, bones, bones_map):
     arm_obj = utils.obj.get_armature_object(bpy_obj)
     if not arm_obj:
         raise log.AppError(
@@ -232,7 +221,7 @@ def _scan_mesh(context, bpy_obj, root_obj, meshes, bones, bones_map):
                 root_obj,
                 child_object,
                 mesh_writer,
-                context,
+                ctx,
                 vertex_groups_map
             )
         except log.AppError as err:
@@ -255,13 +244,13 @@ def _scan_arm(bpy_obj, arms, bones, bones_map):
         bone.reg_bone(bones, bones_map, bpy_bone, bpy_obj)
 
 
-def _scan_obj(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
+def _scan_obj(bpy_obj, root_obj, meshes, arms, bones, bones_map, ctx):
     if utils.obj.is_helper_object(bpy_obj):
         return
 
     # scan mesh
     if bpy_obj.type == 'MESH':
-        _scan_mesh(context, bpy_obj, root_obj, meshes, bones, bones_map)
+        _scan_mesh(ctx, bpy_obj, root_obj, meshes, bones, bones_map)
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':
@@ -288,17 +277,46 @@ def _get_arm(root_obj, arms):
     return arm_obj
 
 
-def _export_main(root_obj, ogf_writer, context):
-    xray = root_obj.xray
+def _write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale):
+
+    # header
+    header.write_header(root_obj, ogf_writer, ctx)
+
+    # revision
+    prop.write_revision(root_obj, ogf_writer)
+
+    # children
+    _write_children(meshes, ogf_writer)
+
+    # bone names
+    bone.write_bone_names(bones, scale, ogf_writer)
+
+    # ik data
+    ik.write_ik_data(arm_obj, bones, scale, ogf_writer)
+
+    # user data
+    prop.write_userdata(root_obj, ogf_writer)
+
+    # motion references
+    motion.write_motion_refs(root_obj, ctx, ogf_writer)
+
+    # motions
+    motion.write_motions(root_obj.xray, ctx, arm_obj, ogf_writer)
+
+    # lod
+    prop.write_lod(root_obj, ogf_writer)
+
+
+def _export_main(root_obj, ogf_writer, ctx):
 
     meshes = []
     arms = []
     bones = []
     bones_map = {}
 
-    exp_objs = utils.obj.get_exp_objs(context, root_obj)
+    exp_objs = utils.obj.get_exp_objs(ctx, root_obj)
     for obj in exp_objs:
-        _scan_obj(obj, root_obj, meshes, arms, bones, bones_map, context)
+        _scan_obj(obj, root_obj, meshes, arms, bones, bones_map, ctx)
 
     # get armature
     arm_obj = _get_arm(root_obj, arms)
@@ -310,23 +328,15 @@ def _export_main(root_obj, ogf_writer, context):
     scale = _get_arm_scale(root_obj, arm_obj)
 
     # write
-    header.write_header(root_obj, ogf_writer, context)
-    prop.write_revision(root_obj, ogf_writer)
-    _write_children(meshes, ogf_writer)
-    bone.write_bone_names(bones, scale, ogf_writer)
-    ik.write_ik_data(arm_obj, bones, scale, ogf_writer)
-    prop.write_userdata(root_obj, ogf_writer)
-    motion.write_motion_refs(root_obj, context, ogf_writer)
-    motion.write_motions(xray, context, arm_obj, ogf_writer)
-    prop.write_lod(root_obj, ogf_writer)
+    _write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale)
 
 
 @log.with_context('export-ogf')
 @utils.stats.timer
-def export_file(bpy_obj, file_path, context):
+def export_file(bpy_obj, file_path, ctx):
     utils.stats.status('Export File', file_path)
     log.update(object=bpy_obj.name)
 
     ogf_writer = rw.write.ChunkedWriter()
-    _export_main(bpy_obj, ogf_writer, context)
+    _export_main(bpy_obj, ogf_writer, ctx)
     rw.utils.save_file(file_path, ogf_writer)
