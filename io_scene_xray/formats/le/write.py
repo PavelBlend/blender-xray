@@ -1,6 +1,5 @@
 # standart modules
 import time
-import string
 
 # addon modules
 from . import fmt

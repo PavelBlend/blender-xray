@@ -9,7 +9,6 @@ import bpy
 # addon modules
 from . import version
 from . import ie
-from . import obj
 from . import stats
 from .. import log
 from .. import text

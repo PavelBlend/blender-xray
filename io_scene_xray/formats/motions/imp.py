@@ -5,7 +5,6 @@ import mathutils
 # addon modules
 from . import const
 from . import interp
-from . import utilites
 from ... import log
 from ... import text
 from ... import utils

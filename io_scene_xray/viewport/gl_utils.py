@@ -6,7 +6,6 @@ import bgl
 
 # addon modules
 from . import const
-from . import geom
 
 
 axis_draw_functions = {

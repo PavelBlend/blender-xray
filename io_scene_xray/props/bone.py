@@ -4,16 +4,11 @@ import math
 # blender modules
 import bpy
 import mathutils
-import gpu
 
 # addon modules
 from . import utility
-from .. import viewport
 from .. import ops
 from .. import utils
-
-if not utils.version.IS_34:
-    import bgl
 
 
 def _iszero(vector):

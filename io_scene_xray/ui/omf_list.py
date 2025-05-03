@@ -5,11 +5,7 @@ import os
 import bpy
 
 # addon modules
-from .. import formats
 from .. import utils
-from .. import log
-from .. import text
-from .. import rw
 
 
 class XRAY_OT_remove_all_omfs(bpy.types.Operator):

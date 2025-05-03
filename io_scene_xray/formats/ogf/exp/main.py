@@ -1,6 +1,3 @@
-# standart modules
-import time
-
 # blender modules
 import bpy
 import bmesh
