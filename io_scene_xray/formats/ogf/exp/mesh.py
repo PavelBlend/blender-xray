@@ -114,6 +114,33 @@ def _remove_child_objs(remove_child_objects, child_objects):
             bpy.data.meshes.remove(child_mesh)
 
 
+def _export_children(
+        ctx,
+        child_objects,
+        root_obj,
+        meshes,
+        vertex_groups_map,
+        remove_child_objects
+    ):
+
+    for child_object in child_objects:
+        mesh_writer = rw.write.ChunkedWriter()
+
+        try:
+            _export_child(
+                root_obj,
+                child_object,
+                mesh_writer,
+                ctx,
+                vertex_groups_map
+            )
+        except log.AppError as err:
+            _remove_child_objs(remove_child_objects, child_objects)
+            raise err
+
+        meshes.append(mesh_writer)
+
+
 def scan_mesh(ctx, bpy_obj, root_obj, meshes, bones, bones_map):
     arm_obj = utils.obj.get_armature_object(bpy_obj)
     if not arm_obj:
@@ -181,21 +208,13 @@ def scan_mesh(ctx, bpy_obj, root_obj, meshes, bones, bones_map):
     else:
         child_objects.append(bpy_obj)
 
-    for child_object in child_objects:
-        mesh_writer = rw.write.ChunkedWriter()
-
-        try:
-            _export_child(
-                root_obj,
-                child_object,
-                mesh_writer,
-                ctx,
-                vertex_groups_map
-            )
-        except log.AppError as err:
-            _remove_child_objs(remove_child_objects, child_objects)
-            raise err
-
-        meshes.append(mesh_writer)
+    _export_children(
+        ctx,
+        child_objects,
+        root_obj,
+        meshes,
+        vertex_groups_map,
+        remove_child_objects
+    )
 
     _remove_child_objs(remove_child_objects, child_objects)
