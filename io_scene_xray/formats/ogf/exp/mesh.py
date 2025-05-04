@@ -224,9 +224,11 @@ def _separate_by_mats(bpy_obj, child_objects):
     bpy.ops.mesh.separate(type='MATERIAL')
     bpy.ops.object.mode_set(mode='OBJECT')
 
+    # collect single material meshes
     for child_object in temp_parent_object.children:
         child_objects.append(child_object)
 
+    # remove temp empty-object
     bpy.data.objects.remove(temp_parent_object)
 
 
