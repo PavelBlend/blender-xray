@@ -267,31 +267,38 @@ def remove_all_objects():
         remove_object(obj)
 
 
+def create_tex(mat, tex_name):
+    mat.use_nodes = True
+    prefs = get_preferences()
+    prefs.textures_folder = 'gamedata\\textures'
+    bpy_image = bpy.data.images.new(tex_name, 0, 0)
+    bpy_image.source = 'FILE'
+    bpy_image.filepath = os.path.abspath(os.path.join(
+        prefs.textures_folder_auto,
+        tex_name
+    ))
+    if bpy.app.version >= (2, 80, 0):
+        img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        img_node.image = bpy_image
+    else:
+        bpy_texture = bpy.data.textures.new('test_texture', 'IMAGE')
+        bpy_texture.image = bpy_image
+        tex_slot = mat.texture_slots.add()
+        tex_slot.texture = bpy_texture
+
+
 def create_object(bm, create_material=True):
     mesh = bpy.data.meshes.new('test')
     bm.to_mesh(mesh)
+
     if create_material:
         mat = bpy.data.materials.new('mat')
-        mat.use_nodes = True
         mesh.materials.append(mat)
-        prefs = get_preferences()
-        prefs.textures_folder = 'gamedata\\textures'
-        bpy_image = bpy.data.images.new('test_image', 0, 0)
-        bpy_image.source = 'FILE'
-        bpy_image.filepath = os.path.abspath(os.path.join(
-            prefs.textures_folder_auto,
-            'test_image'
-        ))
-        if bpy.app.version >= (2, 80, 0):
-            img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
-            img_node.image = bpy_image
-        else:
-            bpy_texture = bpy.data.textures.new('test_texture', 'IMAGE')
-            bpy_texture.image = bpy_image
-            tex_slot = mat.texture_slots.add()
-            tex_slot.texture = bpy_texture
+        create_tex(mat, 'test_image')
+
     obj = bpy.data.objects.new('test', mesh)
     link_object(obj)
+
     return obj
 
 

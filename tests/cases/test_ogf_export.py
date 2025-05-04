@@ -525,6 +525,28 @@ class TestOgfExport(tests.utils.XRayTestCase):
             'test_four_links_two_sided.ogf'
         })
 
+    def test_export_multi_material(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+        mesh_obj = obj.children[0]
+
+        mat = bpy.data.materials.new(name='multi_material_test')
+        mesh_obj.data.materials.append(mat)
+        mesh_obj.data.polygons[0].material_index = 1
+        tests.utils.create_tex(mat, 'multi_material_test')
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_multi_material.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({'test_multi_material.ogf'})
+
     def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
