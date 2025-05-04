@@ -6,6 +6,7 @@ import io_scene_xray
 
 
 class TestOgfExport(tests.utils.XRayTestCase):
+
     def test_export_active_object(self):
         # Arrange
         bpy.ops.object.select_all(action='DESELECT')
@@ -331,11 +332,18 @@ class TestOgfExport(tests.utils.XRayTestCase):
             texture_name_from_image_path=False
         )
 
+        mesh_obj.data.materials[0].xray.flags_twosided = True
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_two_links_two_sided.ogf'),
+            texture_name_from_image_path=False
+        )
+
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({
             'test_two_links_soc.ogf',
-            'test_two_links_cscop.ogf'
+            'test_two_links_cscop.ogf',
+            'test_two_links_two_sided.ogf'
         })
 
     def test_export_three_links(self):
@@ -401,11 +409,19 @@ class TestOgfExport(tests.utils.XRayTestCase):
             texture_name_from_image_path=False
         )
 
+        mesh_obj.data.materials[0].xray.flags_twosided = True
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_three_links_two_sided.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({
             'test_three_links_soc.ogf',
-            'test_three_links_cscop.ogf'
+            'test_three_links_cscop.ogf',
+            'test_three_links_two_sided.ogf'
         })
 
     def test_export_four_links(self):
@@ -494,11 +510,19 @@ class TestOgfExport(tests.utils.XRayTestCase):
             texture_name_from_image_path=False
         )
 
+        mesh_obj.data.materials[0].xray.flags_twosided = True
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_four_links_two_sided.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({
             'test_four_links_soc.ogf',
-            'test_four_links_cscop.ogf'
+            'test_four_links_cscop.ogf',
+            'test_four_links_two_sided.ogf'
         })
 
     def _create_object(self, name, two_sided=False):
