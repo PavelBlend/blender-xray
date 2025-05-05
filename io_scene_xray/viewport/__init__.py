@@ -43,6 +43,7 @@ def overlay_view_3d():
             obj.data.xray.ondraw_postview(obj, context)
 
     context.draw()
+    utils.draw.reset_gl_state()
 
 
 def register():
