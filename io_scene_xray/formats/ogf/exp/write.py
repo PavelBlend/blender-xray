@@ -14,7 +14,7 @@ from .... import rw
 def write_child(obj, writer, ctx, mesh, vertices, triangles, max_wght):
 
     # header
-    header.write_header_child(mesh, writer)
+    header.write_header_child(mesh, writer, max_wght)
 
     # texture
     two_sided = tex.write_tex(obj, ctx, writer)
@@ -38,7 +38,7 @@ def write_children(meshes, ogf_writer):
 def write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale):
 
     # header
-    header.write_header(root_obj, ogf_writer, ctx)
+    header.write_header(root_obj, ogf_writer, ctx, arm_obj)
 
     # revision
     prop.write_revision(root_obj, ogf_writer)
@@ -63,3 +63,31 @@ def write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale):
 
     # lod
     prop.write_lod(root_obj, ogf_writer)
+
+
+def write_static(root_obj, ogf_writer, ctx, meshes):
+
+    if len(meshes) == 1:
+        mesh_writer = meshes[0]
+
+        # mesh
+        ogf_writer.data = mesh_writer.data
+
+        # revision
+        prop.write_revision(root_obj, ogf_writer)
+
+    else:
+        # header
+        header.write_header(root_obj, ogf_writer, ctx, None)
+
+        # revision
+        prop.write_revision(root_obj, ogf_writer)
+
+        # children
+        write_children(meshes, ogf_writer)
+
+        # user data
+        prop.write_userdata(root_obj, ogf_writer)
+
+        # lod
+        prop.write_lod(root_obj, ogf_writer)

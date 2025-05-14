@@ -23,6 +23,7 @@ def get_arm_scale(root_obj, arm_obj):
 
 
 def get_arm(root_obj, arms):
+
     if len(arms) > 1:
         raise log.AppError(
             text.error.object_many_arms,
@@ -32,5 +33,10 @@ def get_arm(root_obj, arms):
             )
         )
 
-    arm_obj = arms[0]
+    elif len(arms) == 1:
+        arm_obj = arms[0]
+
+    else:
+        arm_obj = None
+
     return arm_obj

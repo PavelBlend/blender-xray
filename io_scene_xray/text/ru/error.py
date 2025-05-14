@@ -182,7 +182,6 @@ translations_table = (
     (error.ogf_bad_model_type, 'Неподдерживаемый тип OGF модели'),
 
     # ogf export
-    (error.ogf_has_no_arm, 'Скелетный меш-объект не имеет арматуры'),
     (error.ogf_verts_count_limit, 'При сохранении в OGF создано слишком много вершин'),
     (error.ogf_many_roots, 'Найдено слишком много root-объектов'),
     (error.ogf_no_root, 'Не найден root-объект'),

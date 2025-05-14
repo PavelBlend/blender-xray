@@ -129,13 +129,27 @@ class ModelType_v2:
     HIERRARHY = 0x1
 
 
+# directx 3d 9 vertex formats
+class D3D9FVF:
+    XYZ = 0x002    # x, y, z
+    NORMAL = 0x010
+    TEXCOUNT_SHIFT = 8
+
+
 class VertexFormat:
+
+    # soc vertex formats
     FVF_1L = 1 * 0x12071980
     FVF_2L = 2 * 0x12071980
+
+    # cs/cop vertex formats
     FVF_1L_CS = 0x1
     FVF_2L_CS = 0x2
     FVF_3L_CS = 0x3
     FVF_4L_CS = 0x4
+
+    # ogf vertex format without skeleton (normal or progressive)
+    FVF_OGF = D3D9FVF.XYZ | D3D9FVF.NORMAL | (1 << D3D9FVF.TEXCOUNT_SHIFT)
 
 
 FORMAT_VERSION_4 = 4

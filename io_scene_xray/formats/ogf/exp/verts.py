@@ -6,6 +6,17 @@ from .... import utils
 from .... import text
 
 
+def write_verts_static(vertices_writer, vertices, norm_coef=1):
+    for vertex in vertices:
+        vertices_writer.putv3f(vertex[1])    # coord
+        vertices_writer.putv3f((
+            norm_coef * vertex[2][0],
+            norm_coef * vertex[2][1],
+            norm_coef * vertex[2][2]
+        ))    # normal
+        vertices_writer.putf('<2f', *vertex[5])    # uv
+
+
 def write_verts_1l(vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         vertices_writer.putv3f(vertex[1])    # coord
@@ -17,7 +28,7 @@ def write_verts_1l(vertices_writer, vertices, norm_coef=1):
         vertices_writer.putv3f(vertex[3])    # tangent
         vertices_writer.putv3f(vertex[4])    # bitangent
         vertices_writer.putf('<2f', *vertex[5])    # uv
-        vertices_writer.putf('<I', vertex[6][0][0])
+        vertices_writer.putf('<I', vertex[6][0][0])    # bone
 
 
 def write_verts_2l(vertices_writer, vertices, norm_coef=1):
@@ -259,8 +270,17 @@ def write_verts(
             )
         )
 
+    # static vertices
+    if not vertex_max_weights:
+        vert_fmt = fmt.VertexFormat.FVF_OGF
+        vertices_writer.putf('<2I', vert_fmt, verts_count)
+        write_verts_static(vertices_writer, vertices)
+
+        if two_sided:
+            write_verts_static(vertices_writer, vertices, norm_coef=-1)
+
     # 1-link vertices
-    if vertex_max_weights == 1:
+    elif vertex_max_weights == 1:
         if context.fmt_ver == 'soc':
             vert_fmt = fmt.VertexFormat.FVF_1L
         else:

@@ -35,14 +35,34 @@ def _export_main(root_obj, writer, ctx):
     # get armature
     arm_obj = arm.get_arm(root_obj, arms)
 
-    # check bone names
-    inspect.bone.check_bone_names(arm_obj)
+    if arm_obj:
 
-    # get armature scale
-    scale = arm.get_arm_scale(root_obj, arm_obj)
+        # check bone names
+        inspect.bone.check_bone_names(arm_obj)
 
-    # write
-    write.write_skeleton(root_obj, arm_obj, writer, ctx, meshes, bones, scale)
+        # get armature scale
+        scale = arm.get_arm_scale(root_obj, arm_obj)
+
+        # write skeleton
+        write.write_skeleton(
+            root_obj,
+            arm_obj,
+            writer,
+            ctx,
+            meshes,
+            bones,
+            scale
+        )
+
+    else:
+
+        # write static
+        write.write_static(
+            root_obj,
+            writer,
+            ctx,
+            meshes
+        )
 
 
 @log.with_context('export-ogf')

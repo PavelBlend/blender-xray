@@ -167,7 +167,7 @@ def read_vertices(chunks, ogf_chunks, visual):
     vertex_format = packed_reader.uint32()
     vertices_count = packed_reader.uint32()
 
-    if vertex_format == level.fmt.FVF_OGF:
+    if vertex_format == fmt.VertexFormat.FVF_OGF:
         for vertex_index in range(vertices_count):
             coord = packed_reader.getv3fp()
             normal = packed_reader.getv3fp()

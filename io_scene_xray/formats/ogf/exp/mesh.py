@@ -36,7 +36,7 @@ def _get_temp_mesh(root_obj, bpy_obj):
     return bpy_mesh, mesh
 
 
-def _collect_geom(bpy_mesh, mesh, vertex_groups_map):
+def _collect_geom(bpy_mesh, mesh, vgroups_map):
     uv_layer = mesh.loops.layers.uv.active
     weight_layer = mesh.verts.layers.deform.verify()
     bpy_mesh.calc_tangents(uvmap=uv_layer.name)
@@ -57,11 +57,13 @@ def _collect_geom(bpy_mesh, mesh, vertex_groups_map):
             # collect vertex weights
             weights = []
             weights_count = 0
-            for group_index, weight in loop.vert[weight_layer].items():
-                remap_group_index = vertex_groups_map.get(group_index, None)
-                if remap_group_index is not None:
-                    weights.append((remap_group_index, weight))
-                    weights_count += 1
+
+            if vgroups_map is not None:
+                for group_index, weight in loop.vert[weight_layer].items():
+                    remap_group_index = vgroups_map.get(group_index, None)
+                    if remap_group_index is not None:
+                        weights.append((remap_group_index, weight))
+                        weights_count += 1
 
             vertex_max_weights = max(vertex_max_weights, weights_count)
 
@@ -91,6 +93,10 @@ def _collect_geom(bpy_mesh, mesh, vertex_groups_map):
 
 
 def _collect_vgrps(bpy_obj, arm_obj, bones, bones_map):
+
+    if not arm_obj:
+        return
+
     # collect vertex groups
 
     vertex_groups_map = {}
@@ -165,14 +171,6 @@ def _export_children(
         meshes.append(mesh_writer)
 
 
-def _check_arm(bpy_obj, arm_obj):
-    if not arm_obj:
-        raise log.AppError(
-            text.error.ogf_has_no_arm,
-            log.props(object=bpy_obj.name)
-        )
-
-
 def _check_uv_maps(bpy_obj):
     uv_layers = bpy_obj.data.uv_layers
 
@@ -192,11 +190,9 @@ def _check_uv_maps(bpy_obj):
 
 def _check_exp_data(bpy_obj, arm_obj):
 
-    # check armature object
-    _check_arm(bpy_obj, arm_obj)
-
     # check vertex weights
-    utils.ie.validate_vertex_weights(bpy_obj, arm_obj)
+    if arm_obj:
+        utils.ie.validate_vertex_weights(bpy_obj, arm_obj)
 
     # check uv-maps
     _check_uv_maps(bpy_obj)
