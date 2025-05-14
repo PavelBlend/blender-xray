@@ -89,8 +89,8 @@ def export_flags(chunked_writer, bpy_obj):
 
 def remove_bad_geometry(bm, bml, bpy_obj):
     bad_vgroups = [
-        (vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME), vertex_group.name) \
-        for vertex_group in bpy_obj.vertex_groups
+        (vgroup.name.startswith(utils.BAD_VTX_GROUP_NAME), vgroup.name)
+        for vgroup in bpy_obj.vertex_groups
     ]
     try:
         # fast method

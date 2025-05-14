@@ -9,7 +9,8 @@ from ... import utils
 from ... import rw
 
 
-URL_FOR_ERR = 'https://github.com/PavelBlend/blender-xray/wiki/Scene-Selection-Import'
+URL_WIKI = 'https://github.com/PavelBlend/blender-xray/wiki/'
+URL_FOR_ERR = URL_WIKI + 'Scene-Selection-Import'
 
 
 def _read_version(version_chunk):

@@ -271,7 +271,11 @@ def import_file(file_path, context):
                             if bone_key < pose_bones_count:
                                 pose_bone = obj_pose.bones[bone_key]
                         if pose_bone:
-                            utils.version.assign_bone_group(bpy_arm_obj, pose_bone.name, bgroup)
+                            utils.version.assign_bone_group(
+                                bpy_arm_obj,
+                                pose_bone.name,
+                                bgroup
+                            )
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
 

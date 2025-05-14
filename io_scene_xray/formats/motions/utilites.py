@@ -3,36 +3,36 @@ from . import const
 from . import interp
 
 
-def refine_keys(keyframes, epsilon=const.EPSILON):
-    def significant(prev_kf, curr_kf, next_kf, skipped):
-        def is_oor(keyframe, derivative):
-            expected_value = (keyframe.time - prev_kf.time) * derivative + prev_kf.value
-            return abs(expected_value - keyframe.value) >= epsilon
+def refine_keys(keyframes, eps=const.EPSILON):
+    def significant(prev, curr, next_, skipped):
+        def is_oor(key, derivative):
+            expected_value = (key.time - prev.time) * derivative + prev.value
+            return abs(expected_value - key.value) >= eps
 
-        if prev_kf is None:
-            return curr_kf is not None
-        if (curr_kf.shape == interp.Shape.LINEAR) and (next_kf.shape == interp.Shape.LINEAR):
-            derivative = (next_kf.value - prev_kf.value) / (next_kf.time - prev_kf.time)
-            if is_oor(curr_kf, derivative):
+        if prev is None:
+            return curr is not None
+        if curr.shape == next_.shape == interp.Shape.LINEAR:
+            derivative = (next_.value - prev.value) / (next_.time - prev.time)
+            if is_oor(curr, derivative):
                 return True
-            for keyframe in skipped:
-                if is_oor(keyframe, derivative):
+            for key in skipped:
+                if is_oor(key, derivative):
                     return True
             return False
-        if (abs(prev_kf.value - curr_kf.value) + abs(curr_kf.value - next_kf.value)) < epsilon:
+        if abs(prev.value - curr.value) + abs(curr.value - next_.value) < eps:
             return False
         return True
 
-    prev_kf, curr_kf = None, None
+    prev, curr = None, None    # preview keyframe, current keyframe
     skipped = []
-    for next_kf in keyframes:
-        if significant(prev_kf, curr_kf, next_kf, skipped):
+    for next_ in keyframes:
+        if significant(prev, curr, next_, skipped):
             skipped = []
-            prev_kf = curr_kf
-            yield curr_kf
-        elif curr_kf is not None:
-            skipped.append(curr_kf)
-        curr_kf = next_kf
+            prev = curr
+            yield curr
+        elif curr is not None:
+            skipped.append(curr)
+        curr = next_
 
-    if curr_kf and ((not prev_kf) or (abs(curr_kf.value - prev_kf.value) >= epsilon)):
-        yield curr_kf
+    if curr and ((not prev) or (abs(curr.value - prev.value) >= eps)):
+        yield curr

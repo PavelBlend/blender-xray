@@ -202,7 +202,15 @@ def import_motion(
                     shapes.append(shapes[-1])
                     tcb.append(tcb[-1])
                     params.append(params[-1])
-                values, times = interpolate_keys(start_frame, end_frame, values, times, shapes, tcb, params)
+                values, times = interpolate_keys(
+                    start_frame,
+                    end_frame,
+                    values,
+                    times,
+                    shapes,
+                    tcb,
+                    params
+                )
             curves[curve_index] = values, times
 
         used_times = set()
@@ -262,13 +270,15 @@ def import_motion(
             ))
             converted_shapes_names.add(shape.name)
         data_path = 'pose.bones["' + bname + '"]'
+        loc_path = data_path + '.location'
+        rot_path = data_path + '.rotation_euler'
         fcs = [
-            act.fcurves.new(data_path + '.location', index=0, action_group=bname),
-            act.fcurves.new(data_path + '.location', index=1, action_group=bname),
-            act.fcurves.new(data_path + '.location', index=2, action_group=bname),
-            act.fcurves.new(data_path + '.rotation_euler', index=0, action_group=bname),
-            act.fcurves.new(data_path + '.rotation_euler', index=1, action_group=bname),
-            act.fcurves.new(data_path + '.rotation_euler', index=2, action_group=bname)
+            act.fcurves.new(loc_path, index=0, action_group=bname),
+            act.fcurves.new(loc_path, index=1, action_group=bname),
+            act.fcurves.new(loc_path, index=2, action_group=bname),
+            act.fcurves.new(rot_path, index=0, action_group=bname),
+            act.fcurves.new(rot_path, index=1, action_group=bname),
+            act.fcurves.new(rot_path, index=2, action_group=bname)
         ]
         xmat = bpy_bone.matrix_local.inverted()
         real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
@@ -385,9 +395,9 @@ def interpolate_keys(start, end, values, times, shapes, tcb, params):
     interpolated_times = []
     keys_count = len(values)
     unsupported_shapes = set()
-    errors = {}
-    for index_start, key_info in enumerate(zip(values, times, shapes, tcb, params)):
-        value_start, time_start, shape_start, tcb_start, params_start = key_info
+    errs = {}
+    for index_start, key in enumerate(zip(values, times, shapes, tcb, params)):
+        value_start, time_start, shape_start, tcb_start, params_start = key
         if not shape_start in (
                 interp.Shape.TCB,
                 interp.Shape.HERMITE,
@@ -397,7 +407,7 @@ def interpolate_keys(start, end, values, times, shapes, tcb, params):
                 interp.Shape.BEZIER_2D
             ):
             unsupported_shapes.add(shape_start.name)
-            errors[shape_start.name] = errors.setdefault(shape_start.name, 0) + 1
+            errs[shape_start.name] = errs.setdefault(shape_start.name, 0) + 1
             continue
         index_end = index_start + 1
         if keys_count == 1:
@@ -437,7 +447,7 @@ def interpolate_keys(start, end, values, times, shapes, tcb, params):
         start_key.value = value_start
         start_key.shape = shape_start
         start_key.tension = tcb_start[0]
-        start_key.continuity = tcb_start[1]
+        start_key.cont = tcb_start[1]
         start_key.bias = tcb_start[2]
         start_key.param_1 = params_start[0]
         start_key.param_2 = params_start[1]
@@ -449,7 +459,7 @@ def interpolate_keys(start, end, values, times, shapes, tcb, params):
         end_key.value = value_end
         end_key.shape = shape_end
         end_key.tension = tcb_end[0]
-        end_key.continuity = tcb_end[1]
+        end_key.cont = tcb_end[1]
         end_key.bias = tcb_end[2]
         end_key.param_1 = params_end[0]
         end_key.param_2 = params_end[1]
@@ -472,6 +482,6 @@ def interpolate_keys(start, end, values, times, shapes, tcb, params):
     if unsupported_shapes:
         raise log.AppError(
             text.error.motion_shape,
-            log.props(shapes=unsupported_shapes, count=errors)
+            log.props(shapes=unsupported_shapes, count=errs)
         )
     return interpolated_values, interpolated_times

@@ -33,7 +33,7 @@ class Key:
         self.time = None
         self.shape = None
         self.tension = None
-        self.continuity = None
+        self.cont = None    # continuity
         self.bias = None
         self.param_1 = None
         self.param_2 = None
@@ -41,41 +41,41 @@ class Key:
         self.param_4 = None
 
 
-def incoming(start_key, end_key, next_key):
-    if end_key.shape == Shape.TCB:
-        a = (1.0 - end_key.tension) * (1.0 - end_key.continuity) * (1.0 + end_key.bias)
-        b = (1.0 - end_key.tension) * (1.0 + end_key.continuity) * (1.0 - end_key.bias)
-        d = end_key.value - start_key.value
-        if next_key.time is not None:
-            t = (end_key.time - start_key.time) / (next_key.time - start_key.time)
-            in_ = t * (b * (next_key.value - end_key.value) + a * d)
+def incoming(start, end, next_):
+    if end.shape == Shape.TCB:
+        a = (1.0 - end.tension) * (1.0 - end.cont) * (1.0 + end.bias)
+        b = (1.0 - end.tension) * (1.0 + end.cont) * (1.0 - end.bias)
+        d = end.value - start.value
+        if next_.time is not None:
+            t = (end.time - start.time) / (next_.time - start.time)
+            in_ = t * (b * (next_.value - end.value) + a * d)
         else:
             in_ = 0.5 * (a + b) * d
-    elif end_key.shape == Shape.LINEAR:
-        in_ = (end_key.value - start_key.value) / (end_key.time - start_key.time)
-    elif end_key.shape in (Shape.HERMITE, Shape.BEZIER_1D):
-        in_ = end_key.param_1
-        if next_key.time is not None:
-            in_ *= (end_key.time - start_key.time) / (next_key.time - start_key.time)
+    elif end.shape == Shape.LINEAR:
+        in_ = (end.value - start.value) / (end.time - start.time)
+    elif end.shape in (Shape.HERMITE, Shape.BEZIER_1D):
+        in_ = end.param_1
+        if next_.time is not None:
+            in_ *= (end.time - start.time) / (next_.time - start.time)
     else:
         in_ = 0.0
     return in_
 
 
-def outgoing(start_key, end_key, prev_key):
-    if start_key.shape == Shape.TCB:
-        a = (1.0 - start_key.tension) * (1.0 + start_key.continuity) * (1.0 + start_key.bias)
-        b = (1.0 - start_key.tension) * (1.0 - start_key.continuity) * (1.0 - start_key.bias)
-        d = end_key.value - start_key.value
-        if prev_key.time is not None:
-            t = (end_key.time - start_key.time) / (end_key.time - prev_key.time)
-            out = t * (a * (start_key.value - prev_key.value) + b * d)
+def outgoing(start, end, prev):
+    if start.shape == Shape.TCB:
+        a = (1.0 - start.tension) * (1.0 + start.cont) * (1.0 + start.bias)
+        b = (1.0 - start.tension) * (1.0 - start.cont) * (1.0 - start.bias)
+        d = end.value - start.value
+        if prev.time is not None:
+            t = (end.time - start.time) / (end.time - prev.time)
+            out = t * (a * (start.value - prev.value) + b * d)
         else:
             out = 0.5 * (a + b) * d
-    elif start_key.shape in (Shape.HERMITE, Shape.BEZIER_1D):
-        out = start_key.param_2
-        if prev_key.time is not None:
-            out *= (end_key.time - start_key.time) / (end_key.time - prev_key.time)
+    elif start.shape in (Shape.HERMITE, Shape.BEZIER_1D):
+        out = start.param_2
+        if prev.time is not None:
+            out *= (end.time - start.time) / (end.time - prev.time)
     else:
         out = 0.0
     return out
@@ -113,17 +113,24 @@ def bez2_time(x0, x1, x2, x3, time, t0, t1):
         return t
 
 
-def bezier_2d(time, start_key, end_key, prev_key):
-    if start_key.shape == Shape.BEZIER_2D:
-        x = start_key.time + start_key.param_3
+def bezier_2d(time, start, end, prev_key):
+    if start.shape == Shape.BEZIER_2D:
+        x = start.time + start.param_3
     else:
-        x = start_key.time + (end_key.time - start_key.time) / 3
-    t = bez2_time(start_key.time, x, end_key.time + end_key.param_1, end_key.time, time, 0.0, 1.0)
-    if start_key.shape == Shape.BEZIER_2D:
-        y = start_key.value + start_key.param_4
+        x = start.time + (end.time - start.time) / 3
+    t = bez2_time(
+        start.time, x,
+        end.time + end.param_1,
+        end.time,
+        time,
+        0.0,
+        1.0
+    )
+    if start.shape == Shape.BEZIER_2D:
+        y = start.value + start.param_4
     else:
-        y = start_key.value + outgoing(start_key, end_key, prev_key) / 3
-    res = bezier(start_key.value, y, end_key.param_2 + end_key.value, end_key.value, t)
+        y = start.value + outgoing(start, end, prev_key) / 3
+    res = bezier(start.value, y, end.param_2 + end.value, end.value, t)
     return res
 
 

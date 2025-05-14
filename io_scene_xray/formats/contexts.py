@@ -79,7 +79,11 @@ class ImportMeshContext(MeshContext):
         relpath = utils.tex.normalize_tex_relpath(relpath)
 
         # create empty image
-        if not self.tex_mod_folder and not self.tex_folder and not self.level_name:
+        if (
+                not self.tex_mod_folder and
+                not self.tex_folder and
+                not self.level_name
+            ):
             relpath = utils.tex.add_tex_ext(relpath)
             return utils.tex.create_empty_img(relpath)
 
@@ -131,7 +135,10 @@ class ImportMeshContext(MeshContext):
 
             # create empty image
             if not bpy_img:
-                tex_abspath = utils.tex.make_abs_tex_path(self.tex_folder, relpath + '.dds')
+                tex_abspath = utils.tex.make_abs_tex_path(
+                    self.tex_folder,
+                    relpath + '.dds'
+                )
                 log.warn('Texture file not found', path=tex_abspath)
                 bpy_img = utils.tex.create_empty_img(tex_abspath)
 

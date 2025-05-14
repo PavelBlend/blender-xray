@@ -40,7 +40,7 @@ def search_image_by_tex_path(tex_abspath):
             return bpy_image
 
 
-def search_texture_by_tex_path(name, abs_path):
+def search_tex_by_path(name, abs_path):
     for bpy_tex in bpy.data.textures:
 
         if not bpy_tex.name.startswith(name):

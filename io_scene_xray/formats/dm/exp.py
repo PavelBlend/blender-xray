@@ -39,7 +39,7 @@ def export(
         b_mesh = utils.mesh.convert_object_to_space_bmesh(bpy_obj, bpy_obj)
 
     else:
-        loc_mat, rot_mat = utils.ie.get_object_transform_matrix(bpy_obj)
+        loc_mat, rot_mat = utils.ie.get_obj_trans_mat(bpy_obj)
         b_mesh = utils.mesh.convert_object_to_space_bmesh(bpy_obj, bpy_obj)
 
     bmesh.ops.triangulate(b_mesh, faces=b_mesh.faces)

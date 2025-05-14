@@ -20,15 +20,15 @@ def import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl):
     child.import_children_l(children_l_data, visual, lvl, 'HIERRARHY')
 
     visual.name = 'hierrarhy'
-    bpy_object = utils.obj.create_object(visual.name, None)
+    obj = utils.obj.create_object(visual.name, None)
 
-    bpy_object.xray.is_level = True
-    bpy_object.xray.level.object_type = 'VISUAL'
-    bpy_object.xray.level.visual_type = 'HIERRARHY'
+    obj.xray.is_level = True
+    obj.xray.level.object_type = 'VISUAL'
+    obj.xray.level.visual_type = 'HIERRARHY'
 
     utility.check_unread_chunks(chunks, context='HIERRARHY_VISUAL')
 
-    return bpy_object
+    return obj
 
 
 def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
@@ -36,7 +36,7 @@ def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
     visual.name = visual_type.lower()
 
     if bpy_mesh:
-        bpy_object = utils.obj.create_object(visual.name, bpy_mesh)
+        obj = utils.obj.create_object(visual.name, bpy_mesh)
 
     else:
         if visual_type == 'PROGRESSIVE':
@@ -44,26 +44,26 @@ def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
 
         indices.convert_indices_to_triangles(visual)
 
-        bpy_object = mesh.create_visual(visual, lvl, geometry_key)
+        obj = mesh.create_visual(visual, lvl, geometry_key)
 
-    bpy_object.xray.is_level = True
-    bpy_object.xray.level.use_fastpath = visual.fastpath
-    bpy_object.xray.level.object_type = 'VISUAL'
-    bpy_object.xray.level.visual_type = visual_type
+    obj.xray.is_level = True
+    obj.xray.level.use_fastpath = visual.fastpath
+    obj.xray.level.object_type = 'VISUAL'
+    obj.xray.level.visual_type = visual_type
 
     utility.check_unread_chunks(chunks, context=visual_type + '_VISUAL')
 
-    return bpy_object
+    return obj
 
 
 def import_progressive_visual(chunks, visual, lvl, chunks_ogf):
-    bpy_object = import_render_visual(chunks, visual, lvl, 'PROGRESSIVE', chunks_ogf)
-    return bpy_object
+    obj = import_render_visual(chunks, visual, lvl, 'PROGRESSIVE', chunks_ogf)
+    return obj
 
 
 def import_normal_visual(chunks, visual, lvl, chunks_ogf):
-    bpy_object = import_render_visual(chunks, visual, lvl, 'NORMAL', chunks_ogf)
-    return bpy_object
+    obj = import_render_visual(chunks, visual, lvl, 'NORMAL', chunks_ogf)
+    return obj
 
 
 def read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):

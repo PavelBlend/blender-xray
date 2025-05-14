@@ -136,27 +136,27 @@ def read_skeleton_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
 
-    vertex_format = packed_reader.uint32()
+    vert_fmt = packed_reader.uint32()
     verices_count = packed_reader.uint32()
 
     visual.deform_bones = set()
 
-    if vertex_format in (fmt.VertexFormat.FVF_1L, fmt.VertexFormat.FVF_1L_CS):
+    if vert_fmt in (fmt.VertexFormat.FVF_1L, fmt.VertexFormat.FVF_1L_CS):
         read_verts_1_link(visual, packed_reader, verices_count)
 
-    elif vertex_format in (fmt.VertexFormat.FVF_2L, fmt.VertexFormat.FVF_2L_CS):
+    elif vert_fmt in (fmt.VertexFormat.FVF_2L, fmt.VertexFormat.FVF_2L_CS):
         read_verts_2_link(visual, packed_reader, verices_count)
 
-    elif vertex_format == fmt.VertexFormat.FVF_3L_CS:
+    elif vert_fmt == fmt.VertexFormat.FVF_3L_CS:
         read_verts_3_link(visual, packed_reader, verices_count)
 
-    elif vertex_format == fmt.VertexFormat.FVF_4L_CS:
+    elif vert_fmt == fmt.VertexFormat.FVF_4L_CS:
         read_verts_4_link(visual, packed_reader, verices_count)
 
     else:
         raise log.AppError(
             text.error.ogf_bad_vertex_fmt,
-            log.props(vertex_format=hex(vertex_format))
+            log.props(vertex_format=hex(vert_fmt))
         )
 
 
@@ -164,10 +164,10 @@ def read_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
 
-    vertex_format = packed_reader.uint32()
+    vert_fmt = packed_reader.uint32()
     vertices_count = packed_reader.uint32()
 
-    if vertex_format == fmt.VertexFormat.FVF_OGF:
+    if vert_fmt == fmt.VertexFormat.FVF_OGF:
         for vertex_index in range(vertices_count):
             coord = packed_reader.getv3fp()
             normal = packed_reader.getv3fp()
@@ -180,5 +180,5 @@ def read_vertices(chunks, ogf_chunks, visual):
     else:
         raise log.AppError(
             text.error.ogf_bad_vertex_fmt,
-            log.props(vertex_format=vertex_format)
+            log.props(vertex_format=vert_fmt)
         )

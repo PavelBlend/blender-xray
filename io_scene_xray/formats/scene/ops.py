@@ -93,13 +93,13 @@ class XRAY_OT_import_scene(
         options={'HIDDEN'}
     )
     mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
-    fmt_version = ie.PropSDKVersion()
+    fmt_ver = ie.PropSDKVersion()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'rawdata_folder')
         layout = self.layout
-        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
         layout.prop(self, 'mesh_split_by_materials')
 
     @log.execute_with_logger
@@ -111,7 +111,7 @@ class XRAY_OT_import_scene(
         imp_context = ImportSceneContext()
 
         imp_context.import_motions = False
-        imp_context.soc_sgroups = self.fmt_version == 'soc'
+        imp_context.soc_sgroups = self.fmt_ver == 'soc'
         imp_context.split_by_materials = self.mesh_split_by_materials
         imp_context.operator = self
         imp_context.before_import_file()
@@ -131,7 +131,7 @@ class XRAY_OT_import_scene(
         pref = utils.version.get_preferences()
 
         self.mesh_split_by_materials = pref.scene_selection_mesh_split_by_mat
-        self.fmt_version = utils.ie.get_sdk_ver(pref.scene_selection_sdk_version)
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.scene_selection_sdk_version)
 
         context.window_manager.fileselect_add(self)
 

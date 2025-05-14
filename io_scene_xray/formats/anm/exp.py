@@ -192,7 +192,7 @@ def _export_action_data(packed_writer, ver, xray, act):
             fcurve,
             xray.fps,
             coef,
-            epsilon=epsilon
+            eps=epsilon
         )
 
 

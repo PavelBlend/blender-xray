@@ -117,7 +117,7 @@ class ObjectExporter:
     def export_transform(self):
         root_matrix = self.root_obj.matrix_world
         if root_matrix != mathutils.Matrix.Identity(4):
-            loc_mat, rot_mat = utils.ie.get_object_transform_matrix(self.root_obj)
+            loc_mat, rot_mat = utils.ie.get_obj_trans_mat(self.root_obj)
             writer = rw.write.PackedWriter()
             writer.putv3f(loc_mat.to_translation())
             writer.putv3f(rot_mat.to_euler('YXZ'))

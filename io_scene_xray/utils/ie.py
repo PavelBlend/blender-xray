@@ -293,7 +293,7 @@ def get_obj_scale_matrix(bpy_root, bpy_obj):
     return matrix, scale
 
 
-def get_object_transform_matrix(bpy_obj):
+def get_obj_trans_mat(bpy_obj):
     loc_mat = mathutils.Matrix.Translation(bpy_obj.location)
 
     if bpy_obj.rotation_mode == 'QUATERNION':
@@ -311,7 +311,7 @@ def get_object_transform_matrix(bpy_obj):
 
 
 def get_object_world_matrix(bpy_obj):
-    loc_mat, rot_mat = get_object_transform_matrix(bpy_obj)
+    loc_mat, rot_mat = get_obj_trans_mat(bpy_obj)
     scl = bpy_obj.scale
     if bpy_obj.parent:
         loc_par, rot_par, scl_par = get_object_world_matrix(bpy_obj.parent)

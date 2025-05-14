@@ -299,7 +299,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, shapes):
 
 
 @log.with_context('envelope')
-def export_envelope(writer, ver, act, fcurve, fps, koef, epsilon=const.EPSILON):
+def export_envelope(writer, ver, act, fcurve, fps, koef, eps=const.EPSILON):
     behavior = None
 
     if fcurve.extrapolation == 'CONSTANT':
@@ -365,7 +365,8 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, epsilon=const.EPSILON):
     time_end = (frame_end - frame_start) / fps
 
     kf_writer = rw.write.PackedWriter()
-    keyframes = utilites.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
+    keys = generate_keys(fcurve.keyframe_points)
+    keyframes = utilites.refine_keys(keys, eps)
     count = write.export_keyframes(kf_writer, keyframes, fps, time_end, ver)
 
     if ver > 3:
