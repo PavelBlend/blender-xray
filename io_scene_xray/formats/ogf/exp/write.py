@@ -73,21 +73,18 @@ def write_static(root_obj, ogf_writer, ctx, meshes):
         # mesh
         ogf_writer.data = mesh_writer.data
 
-        # revision
-        prop.write_revision(root_obj, ogf_writer)
-
     else:
         # header
         header.write_header(root_obj, ogf_writer, ctx, None)
 
-        # revision
-        prop.write_revision(root_obj, ogf_writer)
-
         # children
         write_children(meshes, ogf_writer)
 
-        # user data
-        prop.write_userdata(root_obj, ogf_writer)
+    # revision
+    prop.write_revision(root_obj, ogf_writer)
 
-        # lod
-        prop.write_lod(root_obj, ogf_writer)
+    # user data
+    prop.write_userdata(root_obj, ogf_writer)
+
+    # lod
+    prop.write_lod(root_obj, ogf_writer)
