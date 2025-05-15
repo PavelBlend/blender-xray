@@ -230,6 +230,10 @@ def maxabs(*args):
     return result
 
 
+def _get_safe_scale(scale):
+    return mathutils.Vector([max(abs(axis), 1e-6) for axis in scale])
+
+
 def apply_shape(bone, shape_matrix):
     xsh = bone.xray.shape
     multiply = utils.version.get_multiply()
@@ -248,10 +252,11 @@ def apply_shape(bone, shape_matrix):
         scale = mat.to_scale()
         if not scale.length:
             return
-        xsh.box_hsz = scale.to_tuple()
+        safe_scale = _get_safe_scale(scale)
+        xsh.box_hsz = safe_scale.to_tuple()
         mrt = multiply(
             mat,
-            utils.bone.convert_vector_to_matrix(scale).inverted()
+            utils.bone.convert_vector_to_matrix(safe_scale).inverted()
         ).to_3x3().transposed()
 
         for index in range(3):
@@ -266,15 +271,16 @@ def apply_shape(bone, shape_matrix):
 
     elif xsh.type == '3':    # cylinder
         xsh.cyl_pos = mat.to_translation().to_tuple()
-        vscale = mat.to_scale()
-        if not vscale.length:
+        scale = mat.to_scale()
+        if not scale.length:
             return
-        xsh.cyl_hgh = abs(vscale[2]) * 2
-        xsh.cyl_rad = maxabs(vscale[0], vscale[1])
+        safe_scale = _get_safe_scale(scale)
+        xsh.cyl_hgh = abs(safe_scale[2]) * 2
+        xsh.cyl_rad = maxabs(safe_scale[0], safe_scale[1])
         mat3 = mat.to_3x3()
         mscale = mathutils.Matrix.Identity(3)
         for axis in range(3):
-            mscale[axis][axis] = 1 / vscale[axis]
+            mscale[axis][axis] = 1 / safe_scale[axis]
         mat3 = multiply(mat3, mscale)
         qrot = mat3.transposed().to_quaternion().inverted()
         vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))
@@ -391,11 +397,12 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
 
                 if vmax.x > vmin.x:
                     vcenter = (vmax + vmin) / 2
-                    vscale = (vmax - vmin) / 2
+                    scale = (vmax - vmin) / 2
+                    safe_vscale = _get_safe_scale(scale)
                     set_matrix(multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
-                        utils.bone.convert_vector_to_matrix(vscale)
+                        utils.bone.convert_vector_to_matrix(safe_vscale)
                     ))
 
         else:
@@ -441,9 +448,9 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                             matrix,
                             mathutils.Matrix.Translation(vcenter),
                             utils.bone.convert_vector_to_matrix((
-                                radius,
-                                radius,
-                                (vmax.z - vmin.z) * 0.5
+                                max(abs(radius), 1e-6),
+                                max(abs(radius), 1e-6),
+                                max(abs((vmax.z - vmin.z) * 0.5), 1e-6)
                             ))
                         ))
 
