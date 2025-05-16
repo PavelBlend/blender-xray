@@ -30,7 +30,8 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
 class XRAY_OT_explicit_path(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.explicit_path'
     bl_label = 'Make Explicit'
-    bl_description = 'Make this path explicit using the automatically calculated value'
+    bl_description = 'Make this path explicit' \
+                        ' using the automatically calculated value'
 
     path = bpy.props.StringProperty()
 

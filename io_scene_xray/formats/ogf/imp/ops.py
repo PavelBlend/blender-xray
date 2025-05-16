@@ -65,7 +65,7 @@ class XRAY_OT_import_ogf(
         type=bpy.types.OperatorFileListElement,
         options={'SKIP_SAVE'}
     )
-    import_motions = ie.PropObjectMotionsImport()
+    import_motions = ie.prop_imp_motions()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger

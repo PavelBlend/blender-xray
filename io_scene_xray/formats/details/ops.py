@@ -63,9 +63,9 @@ class XRAY_OT_import_details(
     )
 
     # import properties
-    models_in_row = ie.prop_details_models_in_a_row()
-    load_slots = ie.prop_details_load_slots()
-    details_format = ie.prop_details_format()
+    models_in_row = ie.prop_models_in_row()
+    load_slots = ie.prop_load_slots()
+    details_format = ie.prop_details_fmt()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -189,8 +189,8 @@ class XRAY_OT_export_details_file(
     )
 
     # export properties
-    tex_name_from_path = ie.PropObjectTextureNamesFromPath()
-    format_version = ie.prop_details_format_version()
+    tex_name_from_path = ie.prop_tex_from_path()
+    format_version = ie.prop_details_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -277,8 +277,8 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
 
     # export properties
-    tex_name_from_path = ie.PropObjectTextureNamesFromPath()
-    format_version = ie.prop_details_format_version()
+    tex_name_from_path = ie.prop_tex_from_path()
+    format_version = ie.prop_details_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})

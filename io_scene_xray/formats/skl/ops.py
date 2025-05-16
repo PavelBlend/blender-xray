@@ -86,7 +86,7 @@ class XRAY_OT_import_skls(
         name='Motions Filter'
     )
     motion_index = bpy.props.IntProperty(options={'HIDDEN'})
-    add_to_motion_list = ie.prop_skl_add_actions_to_motion_list()
+    add_to_motion_list = ie.prop_add_acts_to_list()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -254,7 +254,7 @@ class XRAY_OT_export_skl_file(
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
+    fmt_ver = ie.prop_sdk_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -324,7 +324,7 @@ class XRAY_OT_export_skls_file(
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
+    fmt_ver = ie.prop_sdk_ver()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
@@ -400,7 +400,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
+    fmt_ver = ie.prop_sdk_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -531,7 +531,7 @@ class XRAY_OT_export_skl(utils.ie.BaseOperator):
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
+    fmt_ver = ie.prop_sdk_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})

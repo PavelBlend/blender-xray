@@ -92,8 +92,8 @@ class XRAY_OT_import_scene(
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
-    fmt_ver = ie.PropSDKVersion()
+    mesh_split_by_materials = ie.prop_split_by_mats()
+    fmt_ver = ie.prop_sdk_ver()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover

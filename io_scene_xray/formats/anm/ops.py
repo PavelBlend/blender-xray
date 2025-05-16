@@ -48,7 +48,7 @@ class XRAY_OT_import_anm(
     files = bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     )
-    camera_animation = ie.PropAnmCameraAnimation()
+    camera_animation = ie.prop_camera_anim()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
@@ -119,7 +119,7 @@ class XRAY_OT_export_anm_file(
         options={'HIDDEN'}
     )
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
-    format_version = ie.prop_anm_format_version()
+    format_version = ie.prop_anm_ver()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
@@ -187,7 +187,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
         options={'HIDDEN'}
     )
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
-    format_version = ie.prop_anm_format_version()
+    format_version = ie.prop_anm_ver()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover

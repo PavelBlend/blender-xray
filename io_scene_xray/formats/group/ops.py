@@ -40,8 +40,8 @@ class XRAY_OT_import_group(utils.ie.BaseOperator):
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    mesh_split_by_mat = ie.PropObjectMeshSplitByMaterials()
-    fmt_version = ie.PropSDKVersion()
+    mesh_split_by_mat = ie.prop_split_by_mats()
+    fmt_version = ie.prop_sdk_ver()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover

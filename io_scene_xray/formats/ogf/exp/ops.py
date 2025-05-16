@@ -56,11 +56,11 @@ class XRAY_OT_export_ogf_file(
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
-    fmt_version = ie.PropSDKVersion()
-    hq_export = ie.prop_omf_high_quality()
-    use_export_paths = ie.PropUseExportPaths()
-    export_motions = ie.PropObjectMotionsExport()
+    texture_name_from_image_path = ie.prop_tex_from_path()
+    fmt_version = ie.prop_sdk_ver()
+    hq_export = ie.prop_high_qual()
+    use_export_paths = ie.prop_exp_paths()
+    export_motions = ie.prop_exp_motions()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -160,11 +160,11 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
-    export_motions = ie.PropObjectMotionsExport()
-    fmt_version = ie.PropSDKVersion()
-    hq_export = ie.prop_omf_high_quality()
-    use_export_paths = ie.PropUseExportPaths()
+    texture_name_from_image_path = ie.prop_tex_from_path()
+    export_motions = ie.prop_exp_motions()
+    fmt_version = ie.prop_sdk_ver()
+    hq_export = ie.prop_high_qual()
+    use_export_paths = ie.prop_exp_paths()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover

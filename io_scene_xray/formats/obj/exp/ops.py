@@ -74,11 +74,11 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
     )
 
     # export properties
-    fmt_version = ie.PropSDKVersion()
-    use_export_paths = ie.PropUseExportPaths()
-    smoothing_out_of = ie.prop_smoothing_out_of()
-    export_motions = ie.PropObjectMotionsExport()
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    fmt_version = ie.prop_sdk_ver()
+    use_export_paths = ie.prop_exp_paths()
+    smoothing_out_of = ie.prop_smooth()
+    export_motions = ie.prop_exp_motions()
+    texture_name_from_image_path = ie.prop_tex_from_path()
 
     # system properties
     objects = bpy.props.StringProperty(options={'HIDDEN'})
@@ -175,11 +175,11 @@ class XRAY_OT_export_object_file(
     )
 
     # export properties
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
-    fmt_version = ie.PropSDKVersion()
-    use_export_paths = ie.PropUseExportPaths()
-    smoothing_out_of = ie.prop_smoothing_out_of()
-    export_motions = ie.PropObjectMotionsExport()
+    texture_name_from_image_path = ie.prop_tex_from_path()
+    fmt_version = ie.prop_sdk_ver()
+    use_export_paths = ie.prop_exp_paths()
+    smoothing_out_of = ie.prop_smooth()
+    export_motions = ie.prop_exp_motions()
 
     # system properties
     object = bpy.props.StringProperty(options={'HIDDEN'})

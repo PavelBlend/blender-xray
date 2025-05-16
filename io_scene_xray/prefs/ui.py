@@ -527,17 +527,53 @@ def draw_custom_props(prefs):
             draw_prop_name(prefs, 'Shape Flags:', 'bone_shape_flags')
             draw_prop_name(prefs, 'Shape Type:', 'bone_shape_type')
             # box shape
-            draw_prop_name(prefs, 'Box Shape Rotation:', 'bone_box_shape_rotation')
-            draw_prop_name(prefs, 'Box Shape Translate:', 'bone_box_shape_translate')
-            draw_prop_name(prefs, 'Box Shape Half Size:', 'bone_box_shape_half_size')
+            draw_prop_name(
+                prefs,
+                'Box Shape Rotation:',
+                'bone_box_shape_rotation'
+            )
+            draw_prop_name(
+                prefs,
+                'Box Shape Translate:',
+                'bone_box_shape_translate'
+            )
+            draw_prop_name(
+                prefs,
+                'Box Shape Half Size:',
+                'bone_box_shape_half_size'
+            )
             # sphere shape
-            draw_prop_name(prefs, 'Sphere Shape Position:', 'bone_sphere_shape_position')
-            draw_prop_name(prefs, 'Sphere Shape Radius:', 'bone_sphere_shape_radius')
+            draw_prop_name(
+                prefs,
+                'Sphere Shape Position:',
+                'bone_sphere_shape_position'
+            )
+            draw_prop_name(
+                prefs,
+                'Sphere Shape Radius:',
+                'bone_sphere_shape_radius'
+            )
             # cylinder shape
-            draw_prop_name(prefs, 'Cylinder Shape Position:', 'bone_cylinder_shape_position')
-            draw_prop_name(prefs, 'Cylinder Shape Direction:', 'bone_cylinder_shape_direction')
-            draw_prop_name(prefs, 'Cylinder Shape Hight:', 'bone_cylinder_shape_hight')
-            draw_prop_name(prefs, 'Cylinder Shape Radius:', 'bone_cylinder_shape_radius')
+            draw_prop_name(
+                prefs,
+                'Cylinder Shape Position:',
+                'bone_cylinder_shape_position'
+            )
+            draw_prop_name(
+                prefs,
+                'Cylinder Shape Direction:',
+                'bone_cylinder_shape_direction'
+            )
+            draw_prop_name(
+                prefs,
+                'Cylinder Shape Hight:',
+                'bone_cylinder_shape_hight'
+            )
+            draw_prop_name(
+                prefs,
+                'Cylinder Shape Radius:',
+                'bone_cylinder_shape_radius'
+            )
 
         elif prefs.custom_props.bone_category == 'IK':
             # ik

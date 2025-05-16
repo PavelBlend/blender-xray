@@ -80,9 +80,9 @@ class XRAY_OT_import_omf(
     )
 
     # import properties
-    import_motions = ie.PropObjectMotionsImport()
-    import_bone_parts = ie.prop_import_bone_parts()
-    add_to_motion_list = ie.prop_skl_add_actions_to_motion_list()
+    import_motions = ie.prop_imp_motions()
+    import_bone_parts = ie.prop_imp_bone_parts()
+    add_to_motion_list = ie.prop_add_acts_to_list()
     motions = bpy.props.CollectionProperty(
         type=Motion,
         name='Motions Filter'
@@ -308,11 +308,11 @@ class XRAY_OT_export_omf_file(
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
-    export_mode = ie.prop_omf_export_mode()
-    export_motions = ie.PropObjectMotionsExport()
-    export_bone_parts = ie.prop_export_bone_parts()
-    high_quality = ie.prop_omf_high_quality()
+    fmt_ver = ie.prop_sdk_ver()
+    export_mode = ie.prop_exp_mode()
+    export_motions = ie.prop_exp_motions()
+    export_bone_parts = ie.prop_exp_bone_parts()
+    high_quality = ie.prop_high_qual()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -406,8 +406,8 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
     directory = bpy.props.StringProperty(subtype='FILE_PATH')
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
-    high_quality = ie.prop_omf_high_quality()
+    fmt_ver = ie.prop_sdk_ver()
+    high_quality = ie.prop_high_qual()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})

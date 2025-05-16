@@ -67,8 +67,8 @@ class XRAY_OT_import_bones(
     files = bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     )
-    import_bone_parts = ie.prop_import_bone_parts()
-    import_bone_properties = ie.prop_import_bone_properties()
+    import_bone_parts = ie.prop_imp_bone_parts()
+    import_bone_properties = ie.prop_imp_bone_props()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
@@ -163,8 +163,8 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     )
-    export_bone_properties = ie.prop_export_bone_properties()
-    export_bone_parts = ie.prop_export_bone_parts()
+    export_bone_properties = ie.prop_exp_bone_props()
+    export_bone_parts = ie.prop_exp_bone_parts()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     objects_list = []
@@ -264,8 +264,8 @@ class XRAY_OT_export_bones_file(
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     )
-    export_bone_properties = ie.prop_export_bone_properties()
-    export_bone_parts = ie.prop_export_bone_parts()
+    export_bone_properties = ie.prop_exp_bone_props()
+    export_bone_parts = ie.prop_exp_bone_parts()
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

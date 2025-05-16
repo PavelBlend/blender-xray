@@ -5,7 +5,7 @@ import bpy
 # import-export properties
 
 
-def PropObjectTextureNamesFromPath():
+def prop_tex_from_path():
     return bpy.props.BoolProperty(
         name='Texture Names from Image Paths',
         description=
@@ -16,7 +16,7 @@ def PropObjectTextureNamesFromPath():
     )
 
 
-def PropSDKVersion():
+def prop_sdk_ver():
     return bpy.props.EnumProperty(
         name='SDK Version',
         items=(
@@ -26,7 +26,7 @@ def PropSDKVersion():
     )
 
 
-def PropObjectMotionsExport():
+def prop_exp_motions():
     return bpy.props.BoolProperty(
         name='Export Motions',
         description='Export armatures actions as embedded motions',
@@ -34,7 +34,7 @@ def PropObjectMotionsExport():
     )
 
 
-def PropUseExportPaths():
+def prop_exp_paths():
     return bpy.props.BoolProperty(
         name='Use Export Paths',
         description=
@@ -50,7 +50,7 @@ items = (
 )
 
 
-def prop_smoothing_out_of():
+def prop_smooth():
     return bpy.props.EnumProperty(
         name='Smoothing Out of',
         description='',
@@ -59,7 +59,7 @@ def prop_smoothing_out_of():
     )
 
 
-def PropObjectMotionsImport():
+def prop_imp_motions():
     return bpy.props.BoolProperty(
         name='Import Motions',
         description='Import embedded motions as actions',
@@ -67,7 +67,7 @@ def PropObjectMotionsImport():
     )
 
 
-def PropObjectMeshSplitByMaterials():
+def prop_split_by_mats():
     return bpy.props.BoolProperty(
         name='Split Mesh by Materials',
         description='Import each surface (material) as separate set of faces',
@@ -75,14 +75,14 @@ def PropObjectMeshSplitByMaterials():
     )
 
 
-def prop_skl_add_actions_to_motion_list():
+def prop_add_acts_to_list():
     return bpy.props.BoolProperty(
         default=True,
         name='Add Actions to Motion List'
     )
 
 
-def PropAnmCameraAnimation():
+def prop_camera_anim():
     return bpy.props.BoolProperty(
         name='Create Linked Camera',
         description='Create animated camera object (linked to "empty"-object)',
@@ -90,7 +90,7 @@ def PropAnmCameraAnimation():
     )
 
 
-def prop_anm_format_version():
+def prop_anm_ver():
     return bpy.props.EnumProperty(
         name='Format Version',
         items=(
@@ -102,23 +102,23 @@ def prop_anm_format_version():
     )
 
 
-def prop_import_bone_properties():
+def prop_imp_bone_props():
     return bpy.props.BoolProperty(name='Import Bone Properties', default=True)
 
 
-def prop_export_bone_properties():
+def prop_exp_bone_props():
     return bpy.props.BoolProperty(name='Export Bone Properties', default=True)
 
 
-def prop_details_models_in_a_row():
+def prop_models_in_row():
     return bpy.props.BoolProperty(name='Models in Row', default=True)
 
 
-def prop_details_load_slots():
+def prop_load_slots():
     return bpy.props.BoolProperty(name='Import Slots', default=True)
 
 
-def prop_details_format():
+def prop_details_fmt():
     return bpy.props.EnumProperty(
         name='Details Format',
         items=(
@@ -128,7 +128,7 @@ def prop_details_format():
     )
 
 
-def prop_details_format_version():
+def prop_details_ver():
     return bpy.props.EnumProperty(
         name='Format',
         items=(
@@ -140,11 +140,11 @@ def prop_details_format_version():
     )
 
 
-def prop_import_bone_parts():
+def prop_imp_bone_parts():
     return bpy.props.BoolProperty(name='Import Bone Parts', default=False)
 
 
-def prop_export_bone_parts():
+def prop_exp_bone_parts():
     return bpy.props.BoolProperty(name='Export Bone Parts', default=False)
 
 
@@ -155,9 +155,9 @@ export_mode_items = (
 )
 
 
-def prop_omf_export_mode():
+def prop_exp_mode():
     return bpy.props.EnumProperty(name='Export Mode', items=export_mode_items)
 
 
-def prop_omf_high_quality():
+def prop_high_qual():
     return bpy.props.BoolProperty(name='High Quality Motions', default=False)

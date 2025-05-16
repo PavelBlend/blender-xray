@@ -105,7 +105,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
     )
     detail_models = bpy.props.StringProperty(options={'HIDDEN'})
     directory = bpy.props.StringProperty(subtype='FILE_PATH')
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    texture_name_from_image_path = ie.prop_tex_from_path()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
@@ -188,7 +188,7 @@ class XRAY_OT_export_dm_file(
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    texture_name_from_image_path = ie.prop_tex_from_path()
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

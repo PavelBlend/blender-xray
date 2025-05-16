@@ -47,8 +47,8 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
-    fmt_version = ie.PropSDKVersion()
+    mesh_split_by_materials = ie.prop_split_by_mats()
+    fmt_version = ie.prop_sdk_ver()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
@@ -117,7 +117,7 @@ class XRAY_OT_export_part(
     )
 
     # export properties
-    fmt_ver = ie.PropSDKVersion()
+    fmt_ver = ie.prop_sdk_ver()
 
     # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})

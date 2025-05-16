@@ -120,6 +120,10 @@ class XRayKeyMap(bpy.types.PropertyGroup):
     operator = bpy.props.StringProperty()
 
 
+def _get_enable_prop():
+    return bpy.props.BoolProperty(default=True, update=update_menu_func)
+
+
 prefs_props = {
     # path props
     'fs_ltx_file': bpy.props.StringProperty(
@@ -225,119 +229,119 @@ prefs_props = {
     ),
 
     # object import props
-    'sdk_version': formats.ie.PropSDKVersion(),
-    'object_motions_import': formats.ie.PropObjectMotionsImport(),
-    'object_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+    'sdk_version': formats.ie.prop_sdk_ver(),
+    'object_motions_import': formats.ie.prop_imp_motions(),
+    'object_mesh_split_by_mat': formats.ie.prop_split_by_mats(),
 
     # object export props
-    'export_object_sdk_version': formats.ie.PropSDKVersion(),
-    'smoothing_out_of': formats.ie.prop_smoothing_out_of(),
-    'object_motions_export': formats.ie.PropObjectMotionsExport(),
-    'object_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': formats.ie.PropUseExportPaths(),
+    'export_object_sdk_version': formats.ie.prop_sdk_ver(),
+    'smoothing_out_of': formats.ie.prop_smooth(),
+    'object_motions_export': formats.ie.prop_exp_motions(),
+    'object_texture_names_from_path': formats.ie.prop_tex_from_path(),
+    'export_object_use_export_paths': formats.ie.prop_exp_paths(),
 
     # anm import props
-    'anm_create_camera': formats.ie.PropAnmCameraAnimation(),
+    'anm_create_camera': formats.ie.prop_camera_anim(),
 
     # anm export props
-    'anm_format_version': formats.ie.prop_anm_format_version(),
+    'anm_format_version': formats.ie.prop_anm_ver(),
 
     # skl/skls import props
-    'add_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
+    'add_to_motion_list': formats.ie.prop_add_acts_to_list(),
 
     # skl/skls export props
-    'skl_export_fmt_ver': formats.ie.PropSDKVersion(),
+    'skl_export_fmt_ver': formats.ie.prop_sdk_ver(),
 
     # bones import props
-    'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
-    'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),
+    'bones_import_bone_parts': formats.ie.prop_imp_bone_parts(),
+    'bones_import_bone_properties': formats.ie.prop_imp_bone_props(),
 
     # bones export props
-    'bones_export_bone_parts': formats.ie.prop_export_bone_parts(),
-    'bones_export_bone_properties': formats.ie.prop_export_bone_properties(),
+    'bones_export_bone_parts': formats.ie.prop_exp_bone_parts(),
+    'bones_export_bone_properties': formats.ie.prop_exp_bone_props(),
 
     # details import props
-    'details_models_in_a_row': formats.ie.prop_details_models_in_a_row(),
-    'load_slots': formats.ie.prop_details_load_slots(),
-    'details_format': formats.ie.prop_details_format(),
+    'details_models_in_a_row': formats.ie.prop_models_in_row(),
+    'load_slots': formats.ie.prop_load_slots(),
+    'details_format': formats.ie.prop_details_fmt(),
 
     # details export props
-    'details_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'format_version': formats.ie.prop_details_format_version(),
+    'details_texture_names_from_path': formats.ie.prop_tex_from_path(),
+    'format_version': formats.ie.prop_details_ver(),
 
     # dm export props
-    'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'dm_texture_names_from_path': formats.ie.prop_tex_from_path(),
 
     # ogf import props
-    'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
+    'ogf_import_motions': formats.ie.prop_imp_motions(),
 
     # ogf export props
-    'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
-    'ogf_export_fmt_ver': formats.ie.PropSDKVersion(),
-    'ogf_export_hq_motions': formats.ie.prop_omf_high_quality(),
-    'ogf_export_use_export_paths': formats.ie.PropUseExportPaths(),
+    'ogf_texture_names_from_path': formats.ie.prop_tex_from_path(),
+    'ogf_export_motions': formats.ie.prop_exp_motions(),
+    'ogf_export_fmt_ver': formats.ie.prop_sdk_ver(),
+    'ogf_export_hq_motions': formats.ie.prop_high_qual(),
+    'ogf_export_use_export_paths': formats.ie.prop_exp_paths(),
 
     # omf import props
-    'omf_import_motions': formats.ie.PropObjectMotionsImport(),
-    'import_bone_parts': formats.ie.prop_import_bone_parts(),
-    'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
+    'omf_import_motions': formats.ie.prop_imp_motions(),
+    'import_bone_parts': formats.ie.prop_imp_bone_parts(),
+    'omf_add_actions_to_motion_list': formats.ie.prop_add_acts_to_list(),
 
     # omf export props
-    'omf_export_fmt_ver': formats.ie.PropSDKVersion(),
-    'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
-    'omf_export_mode': formats.ie.prop_omf_export_mode(),
-    'omf_motions_export': formats.ie.PropObjectMotionsExport(),
-    'omf_high_quality': formats.ie.prop_omf_high_quality(),
+    'omf_export_fmt_ver': formats.ie.prop_sdk_ver(),
+    'omf_export_bone_parts': formats.ie.prop_exp_bone_parts(),
+    'omf_export_mode': formats.ie.prop_exp_mode(),
+    'omf_motions_export': formats.ie.prop_exp_motions(),
+    'omf_high_quality': formats.ie.prop_high_qual(),
 
     # scene selection import props
-    'scene_selection_sdk_version': formats.ie.PropSDKVersion(),
-    'scene_selection_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+    'scene_selection_sdk_version': formats.ie.prop_sdk_ver(),
+    'scene_selection_mesh_split_by_mat': formats.ie.prop_split_by_mats(),
 
     # part import props
-    'part_sdk_version': formats.ie.PropSDKVersion(),
-    'part_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+    'part_sdk_version': formats.ie.prop_sdk_ver(),
+    'part_mesh_split_by_mat': formats.ie.prop_split_by_mats(),
 
     # part export props
-    'part_exp_sdk_ver': formats.ie.PropSDKVersion(),
+    'part_exp_sdk_ver': formats.ie.prop_sdk_ver(),
 
     # group import props
-    'group_sdk_ver': formats.ie.PropSDKVersion(),
-    'group_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+    'group_sdk_ver': formats.ie.prop_sdk_ver(),
+    'group_split_by_mat': formats.ie.prop_split_by_mats(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
     'keymaps_collection_index': bpy.props.IntProperty(options={'SKIP_SAVE'}),
 
     # enable import plugins
-    'enable_object_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_anm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_dm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_details_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skls_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_bones_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_err_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_scene_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_part_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_group_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_object_import': _get_enable_prop(),
+    'enable_anm_import': _get_enable_prop(),
+    'enable_dm_import': _get_enable_prop(),
+    'enable_details_import': _get_enable_prop(),
+    'enable_skls_import': _get_enable_prop(),
+    'enable_bones_import': _get_enable_prop(),
+    'enable_err_import': _get_enable_prop(),
+    'enable_scene_import': _get_enable_prop(),
+    'enable_level_import': _get_enable_prop(),
+    'enable_omf_import': _get_enable_prop(),
+    'enable_ogf_import': _get_enable_prop(),
+    'enable_part_import': _get_enable_prop(),
+    'enable_group_import': _get_enable_prop(),
 
     # enable export plugins
-    'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skl_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_scene_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_part_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_group_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_object_export': _get_enable_prop(),
+    'enable_anm_export': _get_enable_prop(),
+    'enable_dm_export': _get_enable_prop(),
+    'enable_details_export': _get_enable_prop(),
+    'enable_skls_export': _get_enable_prop(),
+    'enable_skl_export': _get_enable_prop(),
+    'enable_bones_export': _get_enable_prop(),
+    'enable_scene_export': _get_enable_prop(),
+    'enable_level_export': _get_enable_prop(),
+    'enable_omf_export': _get_enable_prop(),
+    'enable_ogf_export': _get_enable_prop(),
+    'enable_part_export': _get_enable_prop(),
+    'enable_group_export': _get_enable_prop(),
 
     'category': bpy.props.EnumProperty(
         default='PATHS',

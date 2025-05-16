@@ -17,7 +17,9 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         exec('{0} = props.prefs_props.get("{0}")'.format(prop_name))
 
     use_update = bpy.props.BoolProperty(default=True)
-    custom_props = bpy.props.PointerProperty(type=props.XRayPrefsCustomProperties)
+    custom_props = bpy.props.PointerProperty(
+        type=props.XRayPrefsCustomProperties
+    )
 
     # paths
     paths_presets = bpy.props.CollectionProperty(type=paths.PathsSettings)

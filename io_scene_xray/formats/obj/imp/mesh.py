@@ -596,7 +596,7 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
         if not context.split_by_materials:
             msg += text.get_tip(text.warn.object_try_use_option)
             split_mesh_prop_name = utils.version.get_prop_name(
-                ie.PropObjectMeshSplitByMaterials()
+                ie.prop_split_by_mats()
             )
             msg += ' "' + split_mesh_prop_name + '". '
         msg += text.get_tip(text.warn.object_vert_group_created)

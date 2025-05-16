@@ -9,7 +9,7 @@ from .. import formats
 
 class PathsSettings(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
-    sdk_ver = formats.ie.PropSDKVersion()
+    sdk_ver = formats.ie.prop_sdk_ver()
 
     # path props
     fs_ltx_file = bpy.props.StringProperty(

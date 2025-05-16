@@ -37,9 +37,9 @@ class XRAY_OT_import_object(
     )
 
     # *.object format props
-    fmt_version = ie.PropSDKVersion()
-    import_motions = ie.PropObjectMotionsImport()
-    mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
+    fmt_version = ie.prop_sdk_ver()
+    import_motions = ie.prop_imp_motions()
+    mesh_split_by_materials = ie.prop_split_by_mats()
 
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
