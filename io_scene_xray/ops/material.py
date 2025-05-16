@@ -156,7 +156,12 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
 
         for material in materials:
             if not material.use_nodes:
-                self.report({'WARNING'}, 'Material "{}" does not use cycles nodes.'.format(material.name))
+                self.report(
+                    {'WARNING'},
+                    'Material "{}" does not use cycles nodes.'.format(
+                        material.name
+                    )
+                )
                 continue
             node_tree = material.node_tree
             nodes = node_tree.nodes
@@ -167,7 +172,10 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
                         output_node = node
                         break
             if not output_node:
-                self.report({'WARNING'}, 'Material "{}" has no output node.'.format(material.name))
+                self.report(
+                    {'WARNING'},
+                    'Material "{}" has no output node.'.format(material.name)
+                )
                 continue
             image_nodes = []
             get_image_nodes(output_node, image_nodes)
@@ -175,7 +183,12 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
             for image_node in image_nodes:
                 images.append(image_node.image)
             if len(images) != 1:
-                self.report({'WARNING'}, 'Material "{}" has to many image nodes'.format(material.name))
+                self.report(
+                    {'WARNING'},
+                    'Material "{}" has to many image nodes'.format(
+                        material.name
+                    )
+                )
                 continue
             image = images[0]
             uv_map = None
@@ -269,19 +282,25 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
             for node in nodes:
                 nodes.remove(node)
             textures = []
-            for texture_slot in material.texture_slots:
-                if texture_slot:
-                    texture = texture_slot.texture
+            for tex_slot in material.texture_slots:
+                if tex_slot:
+                    texture = tex_slot.texture
                     if texture:
                         if texture.type == 'IMAGE':
                             if texture.image:
-                                textures.append([texture, texture_slot.uv_layer])
+                                textures.append([texture, tex_slot.uv_layer])
             if len(textures) > 1:
-                self.report({'WARNING'}, 'Material "{}" has to many textures'.format(material.name))
+                self.report(
+                    {'WARNING'},
+                    'Material "{}" has to many textures'.format(material.name)
+                )
                 material.use_nodes = False
                 continue
             if len(textures) == 0:
-                self.report({'WARNING'}, 'Material "{}" has no textures'.format(material.name))
+                self.report(
+                    {'WARNING'},
+                    'Material "{}" has no textures'.format(material.name)
+                )
                 material.use_nodes = False
                 continue
             texture = textures[0][0]
@@ -306,11 +325,20 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
             output_node.location = location
             output_node.select = False
             location[0] += 300.0
-            node_tree.links.new(uv_node.outputs['UV'], image_node.inputs['Vector'])
+            node_tree.links.new(
+                uv_node.outputs['UV'],
+                image_node.inputs['Vector']
+            )
             color_name = shader_keys[self.shader_type][1]
             output_name = shader_keys[self.shader_type][2]
-            node_tree.links.new(image_node.outputs['Color'], shader_node.inputs[color_name])
-            node_tree.links.new(shader_node.outputs[output_name], output_node.inputs['Surface'])
+            node_tree.links.new(
+                image_node.outputs['Color'],
+                shader_node.inputs[color_name]
+            )
+            node_tree.links.new(
+                shader_node.outputs[output_name],
+                output_node.inputs['Surface']
+            )
         utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
@@ -323,7 +351,8 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
 class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
-    bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
+    bl_description = 'Set a pseudo-random diffuse color' \
+                        ' for each surface (material)'
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = bpy.props.EnumProperty(
@@ -387,7 +416,8 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
             'change_viewport_color',
             text='Change Viewport Color'
         )
-        is_cycles = context.scene.render.engine in utils.version.CYCLES_COMPATIBLE_RENDS
+        rend = context.scene.render.engine
+        is_cycles = rend in utils.version.CYCLES_COMPATIBLE_RENDS
         if is_cycles:
             column.prop(
                 self,
@@ -486,7 +516,8 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
             if self.change_viewport_color:
                 mat.diffuse_color = color
                 changed = True
-            is_cycles = context.scene.render.engine in utils.version.CYCLES_COMPATIBLE_RENDS
+            rend = context.scene.render.engine
+            is_cycles = rend in utils.version.CYCLES_COMPATIBLE_RENDS
             if self.change_shader_color and is_cycles:
                 output_node = None
                 for node in mat.node_tree.nodes:

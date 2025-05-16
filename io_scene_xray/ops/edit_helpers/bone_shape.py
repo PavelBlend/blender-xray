@@ -379,7 +379,12 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         stype = bone.xray.shape.type
 
         if stype == '1':    # box
-            obb_mat = utils.bone.get_obb(bone, False, self.min_weight, in_world_coordinates=True)
+            obb_mat = utils.bone.get_obb(
+                bone,
+                False,
+                self.min_weight,
+                in_world_coordinates=True
+            )
 
             if obb_mat and self.mode == 'OBB':
                 set_matrix(obb_mat)
@@ -387,7 +392,10 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             else:
 
                 # generate aabb
-                verts, weights = utils.bone.bone_vertices(bone, in_world_coordinates=True)
+                verts, weights = utils.bone.bone_vertices(
+                    bone,
+                    in_world_coordinates=True
+                )
                 for index, vtx in enumerate(verts):
                     weight = weights[index]
                     if weight >= self.min_weight:
@@ -407,7 +415,10 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
 
         else:
             vertices = []
-            verts, weights = utils.bone.bone_vertices(bone, in_world_coordinates=True)
+            verts, weights = utils.bone.bone_vertices(
+                bone,
+                in_world_coordinates=True
+            )
             for index, vtx in enumerate(verts):
                 weight = weights[index]
                 if weight >= self.min_weight:
@@ -434,7 +445,12 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                     ))
 
                 elif stype == '3':    # cylinder
-                    obb_mat = utils.bone.get_obb(bone, True, self.min_weight, in_world_coordinates=True)
+                    obb_mat = utils.bone.get_obb(
+                        bone,
+                        True,
+                        self.min_weight,
+                        in_world_coordinates=True
+                    )
 
                     if obb_mat and self.mode == 'OBB':
                         set_matrix(obb_mat)

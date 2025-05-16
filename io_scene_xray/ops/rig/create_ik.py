@@ -114,7 +114,8 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
 
     if utils.version.has_id_props_ui():
-        ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
+        target_pose_bone = obj.pose.bones[target_bone_name]
+        ui_prop = target_pose_bone.id_properties_ui(IK_FK_PROP_NAME)
         ui_prop.update(
             min=0,
             max=1,
@@ -153,17 +154,17 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
 
         # create constraints
         bpy.ops.object.mode_set(mode='POSE', toggle=False)
-        child_pose_bone = obj.pose.bones[child_bone_name]
+        child_pbone = obj.pose.bones[child_bone_name]
 
         # ik
-        copy_rotation_constr = child_pose_bone.constraints.new('COPY_ROTATION')
+        copy_rotation_constr = child_pbone.constraints.new('COPY_ROTATION')
         copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = ik_subtarget_name
         copy_rotation_constr.mute = False
 
         # fk
-        copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
+        copy_transforms_constr = child_pbone.constraints.new('COPY_TRANSFORMS')
         copy_transforms_constr.name = 'fk'
         copy_transforms_constr.target = obj
         copy_transforms_constr.subtarget = fk_subtarget_name
@@ -293,9 +294,18 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         return angle
 
     def get_pole_angle(base_bone, ik_bone, pole_location):
-        pole_normal = (ik_bone.tail - base_bone.head).cross(pole_location - base_bone.head)
-        projected_pole_axis = pole_normal.cross(base_bone.tail - base_bone.head)
-        return signed_angle(base_bone.x_axis, projected_pole_axis, base_bone.tail - base_bone.head)
+        pole_normal = (ik_bone.tail - base_bone.head).cross(
+            pole_location - base_bone.head
+        )
+
+        # projected pole axis
+        proj = pole_normal.cross(base_bone.tail - base_bone.head)
+
+        return signed_angle(
+            base_bone.x_axis,
+            proj,
+            base_bone.tail - base_bone.head
+        )
 
     base_bone = obj.pose.bones[bone_root_name]
     ik_bone = obj.pose.bones[bone_name]

@@ -25,19 +25,19 @@ def get_object_transforms():
 
 
 def write_buffer_data():
-    xray_translation, xray_rotation = get_object_transforms()
+    xray_trn, xray_rot = get_object_transforms()
     buffer_text = ''
     buffer_text += '; hud transforms\n'
-    buffer_text += 'position = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
+    buffer_text += 'position = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_trn)
     buffer_text += 'orientation = {:.6f}, {:.6f}, {:.6f}\n'.format(
-        math.degrees(xray_rotation[0]),
-        math.degrees(xray_rotation[1]),
-        math.degrees(xray_rotation[2])
+        math.degrees(xray_rot[0]),
+        math.degrees(xray_rot[1]),
+        math.degrees(xray_rot[2])
     )
     buffer_text += '\n; hud offset\n'
-    buffer_text += 'zoom_offset = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
-    buffer_text += 'zoom_rotate_x = {:.6f}\n'.format(-xray_rotation[1])
-    buffer_text += 'zoom_rotate_y = {:.6f}\n'.format(-xray_rotation[0])
+    buffer_text += 'zoom_offset = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_trn)
+    buffer_text += 'zoom_rotate_x = {:.6f}\n'.format(-xray_rot[1])
+    buffer_text += 'zoom_rotate_y = {:.6f}\n'.format(-xray_rot[0])
     bpy.context.window_manager.clipboard = buffer_text
 
 
@@ -105,7 +105,8 @@ class XRAY_OT_update_blender_tranforms(utils.ie.BaseOperator):
         if obj.rotation_mode == 'QUATERNION':
             obj.rotation_quaternion = rot_euler.to_quaternion()
         else:
-            obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
+            rot_mat = rot_euler.to_matrix()
+            obj.rotation_euler = rot_mat.to_euler(obj.rotation_mode)
 
         self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}

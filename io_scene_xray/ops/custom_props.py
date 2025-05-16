@@ -149,9 +149,10 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
     def execute(self, context):
         preferences = utils.version.get_preferences()
         stgs = preferences.custom_props    # settings
-        objects, meshes, materials, armatures, actions = find_data(self, context)
+        objs, meshes, mats, arms, acts = find_data(self, context)
+
         # object
-        for obj in objects:
+        for obj in objs:
             self.obj = obj
             xray = obj.xray
             self.set_custom(xray, 'flags', stgs.object_flags)
@@ -166,20 +167,23 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                 motion_refs_list = motion_refs.split(',')
                 for motion_ref in motion_refs_list:
                     xray.motionrefs_collection.add().name = motion_ref
+
         # mesh
         for mesh in meshes:
             self.obj = mesh
             self.set_custom(mesh.xray, 'flags', stgs.mesh_flags)
+
         # material
-        for material in materials:
+        for material in mats:
             self.obj = material
             xray = material.xray
             self.set_custom(xray, 'flags_twosided', stgs.material_two_sided)
             self.set_custom(xray, 'eshader', stgs.material_shader)
             self.set_custom(xray, 'cshader', stgs.material_compile)
             self.set_custom(xray, 'gamemtl', stgs.material_game_mtl)
+
         # bone
-        for armature in armatures:
+        for armature in arms:
             bgroups = utils.version.get_bone_groups(armature)
             for bone in armature.data.bones:
                 self.obj = bone
@@ -228,8 +232,9 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                     if not group:
                         group = bgroups.new(name=bone_group_name)
                     utils.version.assign_bone_group(armature, bone.name, group)
+
         # action
-        for action in actions:
+        for action in acts:
             self.obj = action
             xray = action.xray
             self.set_custom(xray, 'fps', stgs.action_fps)
@@ -239,8 +244,11 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
             self.set_custom(xray, 'bonepart', stgs.action_bone_part)
             self.set_custom(xray, 'flags', stgs.action_flags)
             self.set_custom(xray, 'power', stgs.action_power)
+
+        # report
         utils.draw.redraw_areas()
         self.report({'INFO'}, text.warn.ready)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -262,9 +270,10 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
     def execute(self, context):
         preferences = utils.version.get_preferences()
         stgs = preferences.custom_props    # settings
-        objects, meshes, materials, armatures, actions = find_data(self, context)
+        objs, meshes, mats, arms, acts = find_data(self, context)
+
         # object
-        for obj in objects:
+        for obj in objs:
             xray = obj.xray
             obj[stgs.object_flags] = xray.flags
             obj[stgs.object_userdata] = xray.userdata
@@ -281,18 +290,21 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
                 obj[stgs.object_motion_references] = ','.join(motion_refs)
             else:
                 obj[stgs.object_motion_references] = ''
+
         # mesh
         for mesh in meshes:
             mesh[stgs.mesh_flags] = mesh.xray.flags
+
         # material
-        for material in materials:
+        for material in mats:
             xray = material.xray
             material[stgs.material_two_sided] = xray.flags_twosided
             material[stgs.material_shader] = xray.eshader
             material[stgs.material_compile] = xray.cshader
             material[stgs.material_game_mtl] = xray.gamemtl
+
         # bone
-        for armature in armatures:
+        for armature in arms:
             for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
@@ -338,8 +350,9 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
                 bgroup = utils.version.get_bone_group(armature, bone)
                 if bgroup:
                     bone[stgs.bone_part] = bgroup.name
+
         # action
-        for action in actions:
+        for action in acts:
             xray = action.xray
             action[stgs.action_fps] = xray.fps
             action[stgs.action_speed] = xray.speed
@@ -348,8 +361,11 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
             action[stgs.action_bone_part] = xray.bonepart
             action[stgs.action_flags] = xray.flags
             action[stgs.action_power] = xray.power
+
+        # report
         utils.draw.redraw_areas()
         self.report({'INFO'}, text.warn.ready)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -445,33 +461,43 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
     @utils.set_cursor_state
     def execute(self, context):
         preferences = utils.version.get_preferences()
-        objects, meshes, materials, armatures, actions = find_data(self, context)
+        objs, meshes, mats, arms, acts = find_data(self, context)
+
+        # collect bones
         bones = set()
-        for armature in armatures:
+        for armature in arms:
             for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue
                 bones.add(bone)
+
+        # collect data blocks
         data = (
-            (objects, custom_object_props),
+            (objs, custom_object_props),
             (meshes, custom_mesh_props),
-            (materials, custom_material_props),
+            (mats, custom_material_props),
             (bones, custom_bone_props),
-            (actions, custom_action_props)
+            (acts, custom_action_props)
         )
+
         for bpy_data_list, custom_props in data:
             props_names = []
+
             for prop_id in custom_props:
                 prop_name = getattr(preferences.custom_props, prop_id, None)
                 if prop_name is not None:
                     props_names.append(prop_name)
+
             for bpy_data in bpy_data_list:
                 for prop_name in props_names:
                     if bpy_data.get(prop_name, None) is not None:
                         del bpy_data[prop_name]
+
+        # report
         utils.draw.redraw_areas()
         self.report({'INFO'}, text.warn.ready)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -491,18 +517,23 @@ class XRAY_OT_remove_all_custom_props(utils.ie.BaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        objects, meshes, materials, armatures, actions = find_data(self, context)
+        objs, meshes, mats, arms, acts = find_data(self, context)
+
+        # collect data blocks
         data_list = []
-        data_list.extend(objects)
+        data_list.extend(objs)
         data_list.extend(meshes)
-        data_list.extend(materials)
-        data_list.extend(actions)
-        for armature in armatures:
+        data_list.extend(mats)
+        data_list.extend(acts)
+
+        # collect bones
+        for armature in arms:
             for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue
                 data_list.append(bone)
+
         for data in data_list:
             remove_keys = set()
             for prop in data.keys():
@@ -513,8 +544,11 @@ class XRAY_OT_remove_all_custom_props(utils.ie.BaseOperator):
                 remove_keys.add(prop)
             for prop in remove_keys:
                 del data[prop]
+
+        # report
         utils.draw.redraw_areas()
         self.report({'INFO'}, text.warn.ready)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
