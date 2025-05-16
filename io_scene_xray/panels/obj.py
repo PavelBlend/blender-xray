@@ -362,7 +362,10 @@ def draw_object_props(layout, data):
         subbox = box.box()
         split = utils.version.layout_split(subbox, 0.25)
         split.label(text='')
-        split.label(text=text.get_iface(text.iface.time_fmt) + ':', icon='INFO')
+        split.label(
+            text=text.get_iface(text.iface.time_fmt) + ':',
+            icon='INFO'
+        )
         subbox.label(text=text.get_iface(text.iface.time_fmt_1))
         subbox.label(text=text.get_iface(text.iface.time_fmt_2))
 
@@ -384,10 +387,27 @@ def draw_details_props(layout, context):
         col = box.column(align=True)
         col.label(text=text.get_iface(text.iface.dm_props) + ':')
 
-        col.prop(model, 'no_waving', text=text.get_iface(text.iface.dm_no_waving), toggle=True)
-        col.prop(model, 'min_scale', text=text.get_iface(text.iface.dm_min_scale))
-        col.prop(model, 'max_scale', text=text.get_iface(text.iface.dm_max_scale))
-        col.prop(model, 'index', text=text.get_iface(text.iface.dm_index))
+        col.prop(
+            model,
+            'no_waving',
+            text=text.get_iface(text.iface.dm_no_waving),
+            toggle=True
+        )
+        col.prop(
+            model,
+            'min_scale',
+            text=text.get_iface(text.iface.dm_min_scale)
+        )
+        col.prop(
+            model,
+            'max_scale',
+            text=text.get_iface(text.iface.dm_max_scale)
+        )
+        col.prop(
+            model,
+            'index',
+            text=text.get_iface(text.iface.dm_index)
+        )
         col.prop(model, 'color', text='')
 
     elif context.active_object.type == 'EMPTY':
@@ -496,7 +516,15 @@ def draw_split_prop(layout, owner, prop, label):
     split.prop(owner, prop, text='')
 
 
-def draw_split_prop_search(layout, owner, prop, label, search_owner, search_prop):
+def draw_split_prop_search(
+        layout,
+        owner,
+        prop,
+        label,
+        search_owner,
+        search_prop
+    ):
+
     split = utils.version.layout_split(layout, 0.333, align=True)
     split.label(text=label+':')
     split.prop_search(owner, prop, search_owner, search_prop, text='')

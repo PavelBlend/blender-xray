@@ -378,13 +378,15 @@ class XRAY_PT_transforms(ui.base.XRayPanel):
             )
             return
         data = context.active_object.xray
-        column = lay.column()
-        column.prop(data, 'position')
-        column.prop(data, 'orientation')
-        column = lay.column(align=True)
-        column.operator(ops.transform.XRAY_OT_update_blender_tranforms.bl_idname)
-        column.operator(ops.transform.XRAY_OT_update_xray_tranforms.bl_idname)
-        column.operator(ops.transform.XRAY_OT_copy_xray_tranforms.bl_idname)
+
+        col = lay.column()
+        col.prop(data, 'position')
+        col.prop(data, 'orientation')
+
+        col = lay.column(align=True)
+        col.operator(ops.transform.XRAY_OT_update_blender_tranforms.bl_idname)
+        col.operator(ops.transform.XRAY_OT_update_xray_tranforms.bl_idname)
+        col.operator(ops.transform.XRAY_OT_copy_xray_tranforms.bl_idname)
 
 
 class XRAY_PT_add(ui.base.XRayPanel):

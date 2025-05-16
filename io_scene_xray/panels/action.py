@@ -48,7 +48,12 @@ class XRAY_PT_action(ui.base.XRayPanel):
         return panel_used
 
     def draw_refine_props(self, layout, data):
-        layout.prop(data, 'autobake_custom_refine', toggle=True, text=text.get_iface(text.iface.use_custom_thresh))
+        layout.prop(
+            data,
+            'autobake_custom_refine',
+            toggle=True,
+            text=text.get_iface(text.iface.use_custom_thresh)
+        )
 
         col = layout.column(align=True)
         col.active = data.autobake_custom_refine
@@ -87,7 +92,12 @@ class XRAY_PT_action(ui.base.XRayPanel):
 
         col = layout.column(align=True)
 
-        col.prop(data, 'fps', text=text.get_iface(text.iface.fps), translate=False)
+        col.prop(
+            data,
+            'fps',
+            text=text.get_iface(text.iface.fps),
+            translate=False
+        )
 
         if obj.type != 'ARMATURE':
             # *.anm format properties

@@ -49,7 +49,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
     def draw(self, context):
         obj = context.active_object
-        bone_name = ops.edit_helpers.bone_shape.HELPER.bone_to_target(context.active_bone).name
+        helper = ops.edit_helpers.bone_shape.HELPER
+        bone_name = helper.bone_to_target(context.active_bone).name
         bone = obj.data.bones.get(bone_name, None)
 
         if not bone:
@@ -73,20 +74,36 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         main_col.enabled = data.exportable
 
         general_box = main_col.box()
-        material.gen_xr_selector(general_box, data, 'gamemtl', 'material', text.get_iface(text.iface.material))
-        general_box.prop(data, 'length', text=text.get_iface(text.iface.length))
+        material.gen_xr_selector(
+            general_box,
+            data,
+            'gamemtl',
+            'material',
+            text.get_iface(text.iface.material)
+        )
+        general_box.prop(
+            data,
+            'length',
+            text=text.get_iface(text.iface.length)
+        )
 
         main_col.separator()
 
         box = main_col.box()
 
         row = box.row()
-        row.label(text=text.get_iface(text.iface.shape_type) + ':', translate=False)
+        row.label(
+            text=text.get_iface(text.iface.shape_type) + ':',
+            translate=False
+        )
         row.prop(data.shape, 'type', text='', translate=False)
 
         if data.shape.type == '4':
             row = box.row()
-            row.label(text=text.get_iface(text.iface.shape_id) + ':', translate=False)
+            row.label(
+                text=text.get_iface(text.iface.shape_id) + ':',
+                translate=False
+            )
             row.prop(data.shape, 'type_custom_id', text='', translate=False)
 
         verdif = data.shape.check_version_different()
@@ -143,44 +160,107 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         box = main_col.box()
 
         row = box.row()
-        row.label(text=text.get_iface(text.iface.joint_type) + ':', translate=False)
+        row.label(
+            text=text.get_iface(text.iface.joint_type) + ':',
+            translate=False
+        )
         row.prop(data.ikjoint, 'type', text='', translate=False)
 
         joint_type = int(data.ikjoint.type)
 
         if joint_type not in (0, 4):    # 0 - Rigid, 4 - None
 
-            box.prop(data, 'friction', text=text.get_iface(text.iface.friction))
+            box.prop(
+                data,
+                'friction',
+                text=text.get_iface(text.iface.friction)
+            )
 
             col = box.column(align=True)
-            col.prop(data.ikjoint, 'spring', text=text.get_iface(text.iface.spring))
-            col.prop(data.ikjoint, 'damping', text=text.get_iface(text.iface.damping))
+            col.prop(
+                data.ikjoint,
+                'spring',
+                text=text.get_iface(text.iface.spring)
+            )
+            col.prop(
+                data.ikjoint,
+                'damping',
+                text=text.get_iface(text.iface.damping)
+            )
 
             # joint
             if joint_type == 2:
                 col_joint = box.column(align=True)
                 col_joint.label(text=text.get_iface(text.iface.limit_x) + ':')
                 row = col_joint.row(align=True)
-                row.prop(data.ikjoint, 'lim_x_min', text=text.get_iface(text.iface.minimum))
-                row.prop(data.ikjoint, 'lim_x_max', text=text.get_iface(text.iface.maximum))
-                col_joint.prop(data.ikjoint, 'lim_x_spr', text=text.get_iface(text.iface.spring))
-                col_joint.prop(data.ikjoint, 'lim_x_dmp', text=text.get_iface(text.iface.damping))
+                row.prop(
+                    data.ikjoint,
+                    'lim_x_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                row.prop(
+                    data.ikjoint,
+                    'lim_x_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_x_spr',
+                    text=text.get_iface(text.iface.spring)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_x_dmp',
+                    text=text.get_iface(text.iface.damping)
+                )
 
                 col_joint = box.column(align=True)
                 col_joint.label(text=text.get_iface(text.iface.limit_y) + ':')
                 row = col_joint.row(align=True)
-                row.prop(data.ikjoint, 'lim_y_min', text=text.get_iface(text.iface.minimum))
-                row.prop(data.ikjoint, 'lim_y_max', text=text.get_iface(text.iface.maximum))
-                col_joint.prop(data.ikjoint, 'lim_y_spr', text=text.get_iface(text.iface.spring))
-                col_joint.prop(data.ikjoint, 'lim_y_dmp', text=text.get_iface(text.iface.damping))
+                row.prop(
+                    data.ikjoint,
+                    'lim_y_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                row.prop(
+                    data.ikjoint,
+                    'lim_y_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_y_spr',
+                    text=text.get_iface(text.iface.spring)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_y_dmp',
+                    text=text.get_iface(text.iface.damping)
+                )
 
                 col_joint = box.column(align=True)
                 col_joint.label(text=text.get_iface(text.iface.limit_z) + ':')
                 row = col_joint.row(align=True)
-                row.prop(data.ikjoint, 'lim_z_min', text=text.get_iface(text.iface.minimum))
-                row.prop(data.ikjoint, 'lim_z_max', text=text.get_iface(text.iface.maximum))
-                col_joint.prop(data.ikjoint, 'lim_z_spr', text=text.get_iface(text.iface.spring))
-                col_joint.prop(data.ikjoint, 'lim_z_dmp', text=text.get_iface(text.iface.damping))
+                row.prop(
+                    data.ikjoint,
+                    'lim_z_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                row.prop(
+                    data.ikjoint,
+                    'lim_z_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_z_spr',
+                    text=text.get_iface(text.iface.spring)
+                )
+                col_joint.prop(
+                    data.ikjoint,
+                    'lim_z_dmp',
+                    text=text.get_iface(text.iface.damping)
+                )
 
             # wheel
             elif joint_type == 3:
@@ -191,31 +271,74 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                     translate=False
                 )
                 col_wheel.label(text=text.get_iface(text.iface.steer) + ':')
-                col_wheel.prop(data.ikjoint, 'lim_x_min', text=text.get_iface(text.iface.minimum))
-                col_wheel.prop(data.ikjoint, 'lim_x_max', text=text.get_iface(text.iface.maximum))
+                col_wheel.prop(
+                    data.ikjoint,
+                    'lim_x_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                col_wheel.prop(
+                    data.ikjoint,
+                    'lim_x_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
 
             # slider
             elif joint_type == 5:
                 col = box.column(align=True)
                 col.label(text=text.get_iface(text.iface.slide_z) + ':')
                 row = col.row(align=True)
-                row.prop(data.ikjoint, 'slide_min', text=text.get_iface(text.iface.minimum))
-                row.prop(data.ikjoint, 'slide_max', text=text.get_iface(text.iface.maximum))
-                col.prop(data.ikjoint, 'lim_x_spr', text=text.get_iface(text.iface.spring))
-                col.prop(data.ikjoint, 'lim_x_dmp', text=text.get_iface(text.iface.damping))
+                row.prop(
+                    data.ikjoint,
+                    'slide_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                row.prop(
+                    data.ikjoint,
+                    'slide_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
+                col.prop(
+                    data.ikjoint,
+                    'lim_x_spr',
+                    text=text.get_iface(text.iface.spring)
+                )
+                col.prop(
+                    data.ikjoint,
+                    'lim_x_dmp',
+                    text=text.get_iface(text.iface.damping)
+                )
 
                 col = box.column(align=True)
                 col.label(text=text.get_iface(text.iface.rotate_z) + ':')
                 row = col.row(align=True)
-                row.prop(data.ikjoint, 'lim_y_min', text=text.get_iface(text.iface.minimum))
-                row.prop(data.ikjoint, 'lim_y_max', text=text.get_iface(text.iface.maximum))
-                col.prop(data.ikjoint, 'lim_y_spr', text=text.get_iface(text.iface.spring))
-                col.prop(data.ikjoint, 'lim_y_dmp', text=text.get_iface(text.iface.damping))
+                row.prop(
+                    data.ikjoint,
+                    'lim_y_min',
+                    text=text.get_iface(text.iface.minimum)
+                )
+                row.prop(
+                    data.ikjoint,
+                    'lim_y_max',
+                    text=text.get_iface(text.iface.maximum)
+                )
+                col.prop(
+                    data.ikjoint,
+                    'lim_y_spr',
+                    text=text.get_iface(text.iface.spring)
+                )
+                col.prop(
+                    data.ikjoint,
+                    'lim_y_dmp',
+                    text=text.get_iface(text.iface.damping)
+                )
 
             # custom
             elif joint_type == 6:
                 row = box.row()
-                row.label(text=text.get_iface(text.iface.joint_id) + ':', translate=False)
+                row.label(
+                    text=text.get_iface(text.iface.joint_id) + ':',
+                    translate=False
+                )
                 row.prop(
                     data.ikjoint,
                     'type_custom_id',
@@ -233,8 +356,16 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         )
 
         if data.ikflags_breakable:
-            col.prop(data.breakf, 'force', text=text.get_iface(text.iface.force))
-            col.prop(data.breakf, 'torque', text=text.get_iface(text.iface.torque))
+            col.prop(
+                data.breakf,
+                'force',
+                text=text.get_iface(text.iface.force)
+            )
+            col.prop(
+                data.breakf,
+                'torque',
+                text=text.get_iface(text.iface.torque)
+            )
 
         main_col.separator()
 
