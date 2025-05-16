@@ -593,7 +593,7 @@ class XRAY_OT_viewer_select_files(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-class XRayViwerFileProperties(bpy.types.PropertyGroup):
+class XRayViewerFileProperties(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty(name='Name')
     path = bpy.props.StringProperty(name='Path')
     select = bpy.props.BoolProperty(name='Select', default=True)
@@ -603,7 +603,7 @@ class XRayViwerFileProperties(bpy.types.PropertyGroup):
 
 
 class XRayViewerProps(bpy.types.PropertyGroup):
-    files = bpy.props.CollectionProperty(type=XRayViwerFileProperties)
+    files = bpy.props.CollectionProperty(type=XRayViewerFileProperties)
     files_index = bpy.props.IntProperty(update=update_file)
     folder = bpy.props.StringProperty()
     files_count = bpy.props.IntProperty(default=0, name='Files Count')
@@ -672,7 +672,7 @@ classes = (
     XRAY_OT_viewer_import_files,
     XRAY_OT_viewer_select_files
 )
-prop_groups = (XRayViwerFileProperties, XRayViewerProps)
+prop_groups = (XRayViewerFileProperties, XRayViewerProps)
 
 
 def register():
