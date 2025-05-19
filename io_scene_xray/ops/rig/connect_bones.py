@@ -120,7 +120,7 @@ def set_con_tail_without_verts(bone, connected_bone):
     connected_bone.tail = connected_bone.head + tail_offset
 
 
-def connect_bones(arm, mesh_objs):
+def connect_bones(obj, arm, mesh_objs):
     bpy.ops.object.mode_set(mode='EDIT')
 
     # collect vertex groups
@@ -142,6 +142,7 @@ def connect_bones(arm, mesh_objs):
     # create connected bones
     connected_bones = {}
     connected_bone_names = []
+    connected_bone_table = {}
     for bone in edit_bones:
         children_count = len(bone.children)
         connected_bone = arm.edit_bones.new(name=bone.name + BONE_NAME_SUFFIX)
@@ -177,14 +178,45 @@ def connect_bones(arm, mesh_objs):
             else:
                 set_con_tail_without_verts(bone, connected_bone)
 
+        if connected_bone.head == connected_bone.tail:
+            connected_bone.tail.z += 0.01
+
         connected_bones[bone] = connected_bone
+        connected_bone_table[bone.name] = connected_bone.name
+
+    # create connected bones 2
+    bpy.ops.object.mode_set(mode='OBJECT')
+    obj_2, arm_2 = _copy_arm_obj(obj, '_2')
+
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # change parents for connected 2 bones
+    for bone_name, connected_bone_name in connected_bone_table.items():
+        bone = arm_2.edit_bones[bone_name]
+        connected_bone = arm_2.edit_bones[connected_bone_name]
+
+        # set bone parent
+        connected_bone.parent = bone
+
+        # set layers
+        utils.version.set_deform_layer(arm_2, connected_bone)
+        utils.version.set_first_layer(arm_2, bone)
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    utils.version.select_object(obj)
+    utils.version.set_active_object(obj)
+    bpy.ops.object.mode_set(mode='EDIT')
 
     # change bones parents
-    for bone, connected_bone in connected_bones.items():
+    for bone_name, connected_bone_name in connected_bone_table.items():
+        bone = arm.edit_bones[bone_name]
+        connected_bone = arm.edit_bones[connected_bone_name]
 
         # set connected bone parent
-        connected_parent = connected_bones.get(bone.parent, None)
-        if connected_parent:
+        connected_parent_name = connected_bone_table.get(bone.parent, None)
+        if connected_parent_name:
+            connected_parent = arm.edit_bones[connected_parent_name]
             connected_bone.parent = connected_parent
         else:
             connected_bone.parent = bone.parent
@@ -197,12 +229,27 @@ def connect_bones(arm, mesh_objs):
         utils.version.set_first_layer(arm, connected_bone)
 
     bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
 
     # set exportable
     for name in connected_bone_names:
         bone = arm.bones.get(name)
         if bone:
             bone.xray.exportable = False
+
+
+def _copy_arm_obj(src_arm_obj, name_suffix):
+    arm_obj = src_arm_obj.copy()
+    src_arm = src_arm_obj.data
+    arm = src_arm.copy()
+    arm_obj.data = arm
+    arm_obj.name = src_arm_obj.name + name_suffix
+    arm.name = src_arm.name + name_suffix
+    utils.version.link_object(arm_obj)
+    bpy.ops.object.select_all(action='DESELECT')
+    utils.version.select_object(arm_obj)
+    utils.version.set_active_object(arm_obj)
+    return arm_obj, arm
 
 
 class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
@@ -217,6 +264,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
+
         # check input
         src_arm_obj = context.active_object
         if not src_arm_obj:
@@ -243,15 +291,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         utils.bone.reset_pose_bone_transforms(src_arm_obj)
 
         # create armature
-        arm_obj = src_arm_obj.copy()
-        arm = src_arm.copy()
-        arm_obj.data = arm
-        arm_obj.name = src_arm_obj.name + NAME_SUFFIX
-        arm.name = src_arm.name + NAME_SUFFIX
-        utils.version.link_object(arm_obj)
-        bpy.ops.object.select_all(action='DESELECT')
-        utils.version.select_object(arm_obj)
-        utils.version.set_active_object(arm_obj)
+        arm_obj, arm = _copy_arm_obj(src_arm_obj, NAME_SUFFIX)
 
         # change xray properties
         arm_obj.xray.isroot = False
@@ -274,7 +314,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
                     mesh_objects.append(obj)
 
         # connect bones
-        connect_bones(arm, mesh_objects)
+        connect_bones(arm_obj, arm, mesh_objects)
 
         # create weights bones
         create_weights_bones(src_arm_obj, arm_obj)
@@ -284,6 +324,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         bpy.ops.io_scene_xray.link_bones(armature=arm_obj.name)
         utils.version.set_active_object(arm_obj)
 
+        # report
         self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
