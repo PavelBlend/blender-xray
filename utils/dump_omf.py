@@ -1,10 +1,7 @@
 import os
 import sys
 import optparse
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from io_scene_xray.xray_io import ChunkedReader, PackedReader
+from xray_io import ChunkedReader, PackedReader
 
 
 MOTIONS_0 = 0x1a
@@ -74,7 +71,7 @@ def dump_motion(data, out, bones_count):
 
 def dump_motions(chunk_id, data, out, bones_count):
     out('Motions Chunk:', hex(chunk_id), len(data))
-    chunked_reader = ChunkedReader(data)
+    chunked_reader = ChunkedReader(data).read()
     for motion_id, chunk_data in chunked_reader:
         out(SPACES * 1 + 'chunk {0}: {1} bytes'.format(motion_id, len(chunk_data)))
         if motion_id == 0:
@@ -302,7 +299,7 @@ def main():
     if is_dir is None:
         with open(sys.argv[1], mode='rb') as file:
             data = file.read()
-            reader = ChunkedReader(data)
+            reader = ChunkedReader(data).read()
             dump_omf(reader, print_function, options)
     else:
         recursive_depth = options.recursive_depth
@@ -327,7 +324,7 @@ def main():
                 print(file_path, end='')
                 with open(file_path, mode='rb') as file:
                     data = file.read()
-                    reader = ChunkedReader(data)
+                    reader = ChunkedReader(data).read()
                     try:
                         dump_omf(reader, print_function, options)
                         print()
