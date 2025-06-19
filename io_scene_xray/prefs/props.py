@@ -120,6 +120,91 @@ class XRayKeyMap(bpy.types.PropertyGroup):
     operator = bpy.props.StringProperty()
 
 
+class PathsSettings(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty()
+    sdk_ver = formats.ie.prop_sdk_ver()
+
+    # path props
+    fs_ltx_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        name='fs.ltx File',
+        update=update_paths
+    )
+
+    # gamedata folders
+    gamedata_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    textures_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    meshes_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    levels_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+
+    # gamedata files
+    gamemtl_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    )
+    eshader_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    )
+    cshader_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    )
+
+    # rawdata folders
+    rawdata_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    objects_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    maps_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+    groups_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    )
+
+    # path auto props
+    gamedata_folder_auto = bpy.props.StringProperty()
+    textures_folder_auto = bpy.props.StringProperty()
+    meshes_folder_auto = bpy.props.StringProperty()
+    levels_folder_auto = bpy.props.StringProperty()
+
+    gamemtl_file_auto = bpy.props.StringProperty()
+    eshader_file_auto = bpy.props.StringProperty()
+    cshader_file_auto = bpy.props.StringProperty()
+
+    rawdata_folder_auto = bpy.props.StringProperty()
+    objects_folder_auto = bpy.props.StringProperty()
+    maps_folder_auto = bpy.props.StringProperty()
+    groups_folder_auto = bpy.props.StringProperty()
+
+    use_update = bpy.props.BoolProperty(default=True)
+
+
+class PathsConfigs(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty()
+    platform = bpy.props.StringProperty()
+    mod = bpy.props.StringProperty()
+
+
 def _get_enable_prop():
     return bpy.props.BoolProperty(default=True, update=update_menu_func)
 
@@ -192,6 +277,16 @@ prefs_props = {
     'maps_folder_auto': bpy.props.StringProperty(),
     'groups_folder_auto': bpy.props.StringProperty(),
 
+    # path advanced props
+    'paths_presets': bpy.props.CollectionProperty(type=PathsSettings),
+    'paths_presets_index': bpy.props.IntProperty(),
+
+    'paths_configs': bpy.props.CollectionProperty(type=PathsConfigs),
+    'paths_configs_index': bpy.props.IntProperty(),
+
+    'used_config': bpy.props.StringProperty(),
+
+    # others
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus',
         update=update_menu_func
@@ -922,6 +1017,8 @@ class XRAY_OT_add_keymap(utils.ie.BaseOperator):
 
 classes = (
     XRayKeyMap,
+    PathsSettings,
+    PathsConfigs,
     XRAY_OT_add_keymap,
     XRayPrefsCustomProperties
 )

@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from . import ui
 from . import ops
-from . import paths
 from . import props
 from . import preset
 from .. import utils
@@ -20,15 +19,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
     custom_props = bpy.props.PointerProperty(
         type=props.XRayPrefsCustomProperties
     )
-
-    # paths
-    paths_presets = bpy.props.CollectionProperty(type=paths.PathsSettings)
-    paths_presets_index = bpy.props.IntProperty()
-
-    paths_configs = bpy.props.CollectionProperty(type=paths.PathsConfigs)
-    paths_configs_index = bpy.props.IntProperty()
-
-    used_config = bpy.props.StringProperty()
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
