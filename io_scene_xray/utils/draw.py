@@ -175,7 +175,16 @@ def set_gl_blend_mode():
 
 
 def set_gl_state():
-    if version.IS_34:
+    if version.IS_44:
+        shade_type = None
+        if bpy.context.area.type == 'VIEW_3D':
+            shade_type = bpy.context.space_data.shading.type
+        if shade_type == 'WIREFRAME':
+            gpu.state.depth_test_set('NONE')
+        else:
+            gpu.state.depth_test_set('LESS_EQUAL')
+        gpu.state.face_culling_set('FRONT')
+    elif version.IS_34:
         gpu.state.depth_test_set('LESS_EQUAL')
         gpu.state.face_culling_set('FRONT')
     else:
