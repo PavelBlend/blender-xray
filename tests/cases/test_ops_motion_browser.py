@@ -31,6 +31,8 @@ class TestOpsMotionBrowser(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.close_motions_file()
 
         for act in bpy.data.actions:
+            if bpy.app.version < (2, 79, 0):
+                act.user_clear()
             bpy.data.actions.remove(act)
 
         # test omf
@@ -111,7 +113,11 @@ class TestOpsMotionBrowser(tests.utils.XRayTestCase):
 
         # remove actions
         self.obj.xray.motions_collection.clear()
+
         for act in bpy.data.actions:
+
+            if bpy.app.version < (2, 79, 0):
+                act.user_clear()
             bpy.data.actions.remove(act)
 
         # Assert
