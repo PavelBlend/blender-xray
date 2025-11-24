@@ -140,7 +140,7 @@ def _remove_child_objs(remove_child_objects, child_objects):
     if remove_child_objects:
         for child_object in child_objects:
             child_mesh = child_object.data
-            bpy.data.objects.remove(child_object)
+            utils.version.remove_object(child_object)
             bpy.data.meshes.remove(child_mesh)
 
 
@@ -225,7 +225,7 @@ def _separate_by_mats(bpy_obj, child_objects):
         child_objects.append(child_object)
 
     # remove temp empty-object
-    bpy.data.objects.remove(temp_parent_object)
+    utils.version.remove_object(temp_parent_object)
 
 
 def _get_mesh_objs(bpy_obj):
