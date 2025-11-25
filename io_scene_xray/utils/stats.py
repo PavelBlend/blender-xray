@@ -167,7 +167,7 @@ def end_time(start_time):
     if statistics.props:
         file_path = statistics.props[0]
 
-        if statistics.time_stage:
+        if statistics.time_stage is not None:
             time_stage_str = normalize_time(statistics.time_stage)
             others_time_str = normalize_time(
                 total_time - statistics.time_stage
