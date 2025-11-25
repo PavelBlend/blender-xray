@@ -840,6 +840,11 @@ fs_props = {
 
 }
 
+# synonyms for cs/cop sdk
+fs_props_synonyms = {
+    '$sdk_root_raw$': '$server_data_root$',
+}
+
 
 def _clear_paths():
     pref = utils.version.get_preferences()
@@ -877,6 +882,11 @@ def _auto_path_fs_ltx(prefs, prop_name):
 
     prop_key, file_name = fs_props[prop_name]
     dir_path = fs.values.get(prop_key, None)
+
+    if dir_path is None:
+        prop_key = fs_props_synonyms.get(prop_key, None)
+        if prop_key is not None:
+            dir_path = fs.values.get(prop_key, None)
 
     if dir_path is None:
         utils.draw.show_message(
