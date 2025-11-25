@@ -98,6 +98,9 @@ def _import(file_path, creader, context):
         if use_interpolate:
             converted_warrning = True
 
+    # set action slot
+    utils.version.set_action_slot(bpy_obj, action)
+
     if converted_warrning:
         log.warn(
             text.warn.anm_conv_linear,

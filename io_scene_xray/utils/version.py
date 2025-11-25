@@ -463,6 +463,11 @@ def set_empty_draw_size(empty_object, draw_size):
         empty_object.empty_draw_size = draw_size
 
 
+def set_action_slot(bpy_obj, action):
+    if IS_44:
+        bpy_obj.animation_data.action_slot = action.slots[0]
+
+
 def remove_action(action):
     action.user_clear()
     if not IS_277:
