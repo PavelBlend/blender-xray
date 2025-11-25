@@ -12,11 +12,6 @@ environment:
     - BLENDER_VERSION: 3.6
     - BLENDER_VERSION: 4.3
 
-before_test:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-
 test_script:
   - ./blender/$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python /home/appveyor/projects/blender-xray/tests/runner.py
 
@@ -25,6 +20,7 @@ after_test:
 
 artifacts:
   - path: .tests
+
 on_failure:
   - 7z a tests.zip .tests
   - appveyor PushArtifact tests.zip
