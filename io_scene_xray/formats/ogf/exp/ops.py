@@ -46,6 +46,7 @@ class XRAY_OT_export_ogf_file(
 
     bl_idname = 'xray_export.ogf_file'
     bl_label = 'Export .ogf'
+    bl_description = 'Exports X-Ray compiled model'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -146,6 +147,7 @@ class XRAY_OT_export_ogf_file(
 class XRAY_OT_export_ogf(utils.ie.BaseOperator):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
+    bl_description = 'Exports X-Ray compiled model'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text

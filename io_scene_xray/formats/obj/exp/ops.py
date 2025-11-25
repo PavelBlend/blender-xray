@@ -60,6 +60,7 @@ filename_ext = '.object'
 class XRAY_OT_export_object(utils.ie.BaseOperator):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
+    bl_description = 'Exports X-Ray object'
     bl_options = {'PRESET'}
 
     text = 'Source Object'
@@ -164,6 +165,7 @@ class XRAY_OT_export_object_file(
 
     bl_idname = 'xray_export.object_file'
     bl_label = 'Export .object'
+    bl_description = 'Exports X-Ray object'
     bl_options = {'PRESET'}
 
     filename_ext = '.object'

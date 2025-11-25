@@ -49,7 +49,7 @@ class XRAY_OT_import_bones(
 
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
-    bl_description = 'Import X-Ray Bones Data'
+    bl_description = 'Import X-Ray bones data'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -152,6 +152,7 @@ class XRAY_OT_import_bones(
 class XRAY_OT_export_bones(utils.ie.BaseOperator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
+    bl_description = 'Exports X-Ray bones data'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -253,6 +254,7 @@ class XRAY_OT_export_bones_file(
 
     bl_idname = 'xray_export.bones_file'
     bl_label = 'Export .bones'
+    bl_description = 'Exports X-Ray bones data'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = BONES_EXT

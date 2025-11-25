@@ -33,6 +33,7 @@ op_text = 'Scene Objects'
 class XRAY_OT_import_part(utils.ie.BaseOperator):
     bl_idname = 'xray_import.part'
     bl_label = 'Import .part'
+    bl_description = 'Imports X-Ray scene objects'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -104,6 +105,7 @@ class XRAY_OT_export_part(
 
     bl_idname = 'xray_export.part'
     bl_label = 'Export .part'
+    bl_description = 'Exports X-Ray scene objects'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text

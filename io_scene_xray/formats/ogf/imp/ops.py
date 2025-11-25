@@ -45,7 +45,7 @@ class XRAY_OT_import_ogf(
 
     bl_idname = 'xray_import.ogf'
     bl_label = 'Import .ogf'
-    bl_description = 'Import X-Ray Compiled Game Model (.ogf)'
+    bl_description = 'Imports X-Ray compiled model'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text

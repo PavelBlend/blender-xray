@@ -34,7 +34,7 @@ class XRAY_OT_import_dm(
 
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
-    bl_description = 'Imports X-Ray Detail Models (.dm)'
+    bl_description = 'Imports X-Ray detail models'
     bl_options = {'REGISTER', 'UNDO'}
 
     text = op_text
@@ -93,6 +93,7 @@ class XRAY_OT_import_dm(
 class XRAY_OT_export_dm(utils.ie.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
+    bl_description = 'Exports X-Ray detail models'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -179,6 +180,7 @@ class XRAY_OT_export_dm_file(
     ):
     bl_idname = 'xray_export.dm_file'
     bl_label = 'Export .dm'
+    bl_description = 'Exports X-Ray detail models'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = filename_ext

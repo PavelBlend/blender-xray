@@ -20,7 +20,7 @@ class XRAY_OT_import_err(
 
     bl_idname = 'xray_import.err'
     bl_label = 'Import .err'
-    bl_description = 'Imports X-Ray Error List (.err)'
+    bl_description = 'Imports X-Ray error list'
     bl_options = {'REGISTER', 'UNDO'}
 
     text = op_text

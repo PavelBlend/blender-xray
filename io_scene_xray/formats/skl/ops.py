@@ -63,7 +63,7 @@ class XRAY_OT_import_skls(
 
     bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
-    bl_description = 'Imports X-Ray skeletal amination'
+    bl_description = 'Imports X-Ray skeletal animations'
     bl_options = {'UNDO', 'PRESET'}
 
     text = op_text
@@ -311,7 +311,7 @@ class XRAY_OT_export_skls_file(
     ):
     bl_idname = 'xray_export.skls_file'
     bl_label = 'Export .skls'
-    bl_description = 'Exports X-Ray skeletal animation'
+    bl_description = 'Exports X-Ray skeletal animations'
     bl_options = {'UNDO', 'PRESET'}
 
     text = op_text
@@ -513,7 +513,7 @@ op_text = 'Skeletal Animation'
 class XRAY_OT_export_skl(utils.ie.BaseOperator):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
-    bl_description = 'Exports X-Ray skeletal animations'
+    bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO', 'PRESET'}
 
     text = op_text

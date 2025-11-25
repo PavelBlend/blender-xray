@@ -55,6 +55,7 @@ else:
 class XRAY_OT_export_level(utils.ie.BaseOperator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export level'
+    bl_description = 'Exports X-Ray compiled level'
 
     text = 'Game Level'
     filename_ext = ''

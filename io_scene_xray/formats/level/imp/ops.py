@@ -27,7 +27,7 @@ class XRAY_OT_import_level(
 
     bl_idname = 'xray_import.level'
     bl_label = 'Import level'
-    bl_description = 'Import X-Ray Game Level (level)'
+    bl_description = 'Imports X-Ray compiled level'
     bl_options = {'REGISTER', 'UNDO'}
 
     text = 'Game Level'

@@ -40,7 +40,7 @@ class XRAY_OT_import_details(
 
     bl_idname = 'xray_import.details'
     bl_label = 'Import .details'
-    bl_description = 'Imports X-Ray Level Details Models (.details)'
+    bl_description = 'Imports X-Ray level details'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
     text = op_text
@@ -176,6 +176,7 @@ class XRAY_OT_export_details_file(
 
     bl_idname = 'xray_export.details_file'
     bl_label = 'Export .details'
+    bl_description = 'Exports X-Ray level details'
     bl_options = {'PRESET'}
 
     text = op_text
@@ -263,6 +264,7 @@ class XRAY_OT_export_details_file(
 class XRAY_OT_export_details(utils.ie.BaseOperator):
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
+    bl_description = 'Exports X-Ray level details'
     bl_options = {'PRESET'}
 
     text = op_text
@@ -366,7 +368,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
 class XRAY_OT_pack_details_images(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.pack_details_images'
     bl_label = 'Pack Details Images'
-    bl_description = 'Pack Details Images as PNG'
+    bl_description = 'Pack details images as PNG'
 
     @classmethod
     def poll(cls, context):

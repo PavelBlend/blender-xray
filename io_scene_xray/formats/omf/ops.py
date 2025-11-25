@@ -57,7 +57,7 @@ class XRAY_OT_import_omf(
 
     bl_idname = 'xray_import.omf'
     bl_label = 'Import .omf'
-    bl_description = 'Import X-Ray Game Motion (omf)'
+    bl_description = 'Imports X-Ray compiled motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = OP_TEXT
@@ -292,7 +292,7 @@ class XRAY_OT_export_omf_file(
 
     bl_idname = 'xray_export.omf_file'
     bl_label = 'Export .omf'
-    bl_description = 'Exports X-Ray skeletal game motions'
+    bl_description = 'Exports X-Ray compiled motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = OP_TEXT
@@ -391,7 +391,7 @@ class XRAY_OT_export_omf_file(
 class XRAY_OT_export_omf(utils.ie.BaseOperator):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
-    bl_description = 'Exports X-Ray skeletal game motions'
+    bl_description = 'Exports X-Ray compiled motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = OP_TEXT

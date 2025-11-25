@@ -26,6 +26,7 @@ op_text = 'Object Group'
 class XRAY_OT_import_group(utils.ie.BaseOperator):
     bl_idname = 'xray_import.group'
     bl_label = 'Import .group'
+    bl_description = 'Imports X-Ray object group'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -97,6 +98,7 @@ class XRAY_OT_export_group(
 
     bl_idname = 'xray_export.group'
     bl_label = 'Export .group'
+    bl_description = 'Exports X-Ray object group'
 
     text = op_text
     ext = filename_ext

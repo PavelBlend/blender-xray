@@ -27,6 +27,7 @@ class XRAY_OT_export_scene(
 
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
+    bl_description = 'Exports X-Ray scene selection'
 
     text = op_text
     ext = filename_ext
@@ -78,6 +79,7 @@ class XRAY_OT_import_scene(
 
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
+    bl_description = 'Imports X-Ray scene selection'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
