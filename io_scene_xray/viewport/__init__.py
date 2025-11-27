@@ -2,12 +2,14 @@
 import bpy
 
 # addon modules
-from . import gl_utils
 from . import gpu_utils
 from . import const
 from . import ctx
 from . import geom
 from .. import utils
+
+if not utils.version.IS_28:
+    from . import gl_utils
 
 
 def get_draw_joint_limits():
