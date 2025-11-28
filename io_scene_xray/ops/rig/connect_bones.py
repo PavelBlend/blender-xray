@@ -212,14 +212,19 @@ def connect_bones(obj, arm, mesh_objs):
     for bone_name, connected_bone_name in connected_bone_table.items():
         bone = arm.edit_bones[bone_name]
         connected_bone = arm.edit_bones[connected_bone_name]
+        bpar = bone.parent
 
         # set connected bone parent
-        connected_parent_name = connected_bone_table.get(bone.parent, None)
+        if bpar:
+            connected_parent_name = connected_bone_table.get(bpar.name, None)
+        else:
+            connected_parent_name = None
+
         if connected_parent_name:
             connected_parent = arm.edit_bones[connected_parent_name]
             connected_bone.parent = connected_parent
         else:
-            connected_bone.parent = bone.parent
+            connected_bone.parent = bpar
 
         # set bone parent
         bone.parent = connected_bone
