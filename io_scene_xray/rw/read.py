@@ -7,7 +7,8 @@ try:
 
     NUMPY_FORMATS = {
         'f': numpy.float32,
-        'I': numpy.uint32
+        'I': numpy.uint32,
+        'B': numpy.uint8
     }
 except:
     numpy = None
