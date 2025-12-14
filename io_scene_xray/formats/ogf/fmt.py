@@ -9,6 +9,7 @@ class Chunks_v4:
     TEXTURE = 2
     VERTICES = 3
     INDICES = 4
+    VERTICES_METRO = 5    # metro, build 375
     SWIDATA = 6
     VCONTAINER = 7
     ICONTAINER = 8
@@ -174,6 +175,7 @@ chunks_names_v4 = {
     Chunks_v4.TEXTURE: 'TEXTURE',
     Chunks_v4.VERTICES: 'VERTICES',
     Chunks_v4.INDICES: 'INDICES',
+    Chunks_v4.VERTICES_METRO: 'VERTICES_METRO',
     Chunks_v4.SWIDATA: 'SWIDATA',
     Chunks_v4.VCONTAINER: 'VCONTAINER',
     Chunks_v4.ICONTAINER: 'ICONTAINER',

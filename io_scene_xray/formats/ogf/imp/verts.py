@@ -182,3 +182,70 @@ def read_vertices(chunks, ogf_chunks, visual):
             text.error.ogf_bad_vertex_fmt,
             log.props(vertex_format=vert_fmt)
         )
+
+
+def read_skeleton_vertices_metro(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.VERTICES_METRO)
+    packed_reader = rw.read.PackedReader(chunk_data)
+
+    num_used_bones = packed_reader.byte()
+    bones_remap = packed_reader.get_array('B', num_used_bones)
+
+    vertices_count = packed_reader.uint32()
+
+    visual.deform_bones = set()
+
+    for vertex_index in range(vertices_count):
+
+        packed_coord = packed_reader.getf('<3h')
+
+        # num of bones with weight >0 ?
+        dummy = packed_reader.getf('<H')
+
+        packed_normal_ao = packed_reader.getf('<4B')
+        packed_tangent = packed_reader.getf('<4B')
+        packed_binormal = packed_reader.getf('<4B')
+
+        # points to bones_remap, each index is multiplied by 3
+        bone_ids = packed_reader.getf('<4B')
+
+        bone_weights = packed_reader.getf('<4B')
+        packed_tc = packed_reader.getf('<2h')
+
+        coord_x = packed_coord[0] / 2720
+        coord_y = packed_coord[1] / 2720
+        coord_z = packed_coord[2] / 2720
+
+        norm_x = packed_normal_ao[2] / 255 * 2 - 1
+        norm_y = packed_normal_ao[1] / 255 * 2 - 1
+        norm_z = packed_normal_ao[0] / 255 * 2 - 1
+
+        tex_u = packed_tc[0] / 2048
+        tex_v = packed_tc[1] / 2048
+
+        bone1 = bones_remap[bone_ids[0] // 3][0]
+        bone2 = bones_remap[bone_ids[1] // 3][0]
+        bone3 = bones_remap[bone_ids[2] // 3][0]
+        bone4 = bones_remap[bone_ids[3] // 3][0]
+
+        bone_indices = (bone1, bone2, bone3, bone4)
+        bone_weights = (
+            bone_weights[0] / 255,
+            bone_weights[1] / 255,
+            bone_weights[2] / 255,
+            bone_weights[3] / 255
+        )
+
+        used_bones = []
+        vertex_weights = []
+        for bone, weight in zip(bone_indices, bone_weights):
+            if bone in used_bones:
+                continue
+            used_bones.append(bone)
+            vertex_weights.append((bone, weight))
+
+        visual.vertices.append((coord_x, coord_z, coord_y))
+        visual.normals.append((norm_x, norm_z, norm_y))
+        visual.uvs.append((tex_u, 1 - tex_v))
+        visual.weights.append(vertex_weights)
+        visual.deform_bones.update(bone_indices)

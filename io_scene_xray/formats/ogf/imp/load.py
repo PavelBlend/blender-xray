@@ -82,7 +82,12 @@ def read_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
 
 def read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
     shader.read_texture(context, chunks, ogf_chunks, visual)
-    verts.read_skeleton_vertices(chunks, ogf_chunks, visual)
+
+    if chunks.get(ogf_chunks.VERTICES):
+        verts.read_skeleton_vertices(chunks, ogf_chunks, visual)
+    else:
+        verts.read_skeleton_vertices_metro(chunks, ogf_chunks, visual)
+
     indices.read_indices(chunks, ogf_chunks, visual)
 
 
