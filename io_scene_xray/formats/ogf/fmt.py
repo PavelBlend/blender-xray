@@ -69,6 +69,7 @@ class Chunks_v3:
     FASTPATH = UNSUPPORTED
     S_MOTION_REFS_2 = UNSUPPORTED
     S_MOTIONS_2 = UNSUPPORTED
+    VERTICES_METRO = UNSUPPORTED    # metro, build 375
 
 
 class Chunks_v2:
@@ -220,6 +221,7 @@ chunks_names_v3 = {
     Chunks_v3.S_MOTIONS_1: 'S_MOTIONS_1',
     Chunks_v3.S_DESC: 'S_DESC',
     Chunks_v3.S_IKDATA_2: 'S_IKDATA_2',
+    Chunks_v3.VERTICES_METRO: 'VERTICES_METRO'
 }
 chunks_names_v2 = {
     Chunks_v2.TEXTURE_L: 'TEXTURE_L',
