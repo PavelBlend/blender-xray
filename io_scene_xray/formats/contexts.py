@@ -157,6 +157,7 @@ class ImportAnimationContext(ImportAnimationBaseContext):
     def __init__(self):
         super().__init__()
         self.import_motions = None
+        self.is_metro = False    # animation from metro (build 375)
 
 
 class ImportAnimationOnlyContext(ImportAnimationBaseContext):
