@@ -220,7 +220,7 @@ def read_motion(
                 flags = packed_reader.getf('<B')[0]
                 t_present = flags & fmt.FL_T_KEY_PRESENT
                 r_absent = flags & fmt.FL_R_KEY_ABSENT
-                hq = flags & fmt.KPF_T_HQ
+                hq = flags & fmt.KPF_T_HQ or context.is_metro
 
             elif version == 1:
                 t_present = packed_reader.getf('<B')[0]
@@ -462,7 +462,7 @@ def read_params(data, context, chunk, bones_indices={}):
         prm.bone_or_part, prm.motion = reader.getf('<2H')
         prm.speed, prm.power, prm.accrue, prm.falloff = reader.getf('<4f')
 
-        if params_version == 4:
+        if params_version == 4 and not context.is_metro:
             mark_offsets[motion_name] = reader.offset()
             read_motion_marks(reader)
 

@@ -86,6 +86,7 @@ def read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
     if chunks.get(ogf_chunks.VERTICES):
         verts.read_skeleton_vertices(chunks, ogf_chunks, visual)
     else:
+        context.is_metro = True
         verts.read_skeleton_vertices_metro(chunks, ogf_chunks, visual)
 
     indices.read_indices(chunks, ogf_chunks, visual)

@@ -19,6 +19,7 @@ class ImportOgfContext(
         super().__init__()
         pref = utils.version.get_preferences()
         self.import_bone_parts = None
+        self.is_metro = False
         self.repored = False
         self._meshes_folders = utils.ie.get_pref_paths('meshes_folder')
 
