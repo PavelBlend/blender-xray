@@ -36,9 +36,9 @@ def draw_arc(radius, start, end, num_segments, fconsumer, close=False):
         fconsumer(x, y)
 
 
-def draw_geom(coords, lines, faces, color_solid, color_wire):
+def draw_geom(coords, lines, faces, color_solid, color_wire, display_mode):
     # solid geometry
-    if faces:
+    if faces and display_mode == 'SOLID':
         bgl.glColor4f(*color_solid)
         bgl.glBegin(bgl.GL_TRIANGLES)
         for face in faces:

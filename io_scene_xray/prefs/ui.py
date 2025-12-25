@@ -621,6 +621,10 @@ def draw_others(prefs):
     prop_bool(layout, prefs, 'use_batch_status')
     prop_bool(layout, prefs, 'object_split_normals')
 
+    row = layout.row()
+    row.label(text='Shape Display Mode:')
+    row.prop(prefs, 'gl_shape_display_mode', expand=True)
+
     box = layout.box()
     box.label(text='Bone Shape Wireframe Colors:')
 

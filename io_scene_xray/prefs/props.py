@@ -453,6 +453,11 @@ prefs_props = {
     'custom_owner_name': bpy.props.StringProperty(),
 
     # viewport props
+    'gl_shape_display_mode': bpy.props.EnumProperty(
+        name='Display Mode',
+        default='SOLID',
+        items=(('SOLID', 'Solid', ''), ('WIRE', 'Wire', ''))
+    ),
     'gl_shape_color': bpy.props.FloatVectorProperty(
         name='Unselected Shape',
         default=(0.0, 0.0, 1.0, 0.5),

@@ -14,18 +14,19 @@ if utils.version.IS_28:
     import gpu_extras.batch
 
 
-def draw_geom(coords, lines, faces, color_solid, color_wire):
+def draw_geom(coords, lines, faces, color_solid, color_wire, display_mode):
     # solid geometry
-    shader = utils.draw.get_shader()
-    batch = gpu_extras.batch.batch_for_shader(
-        shader,
-        'TRIS',
-        {'pos': coords},
-        indices=faces
-    )
-    shader.bind()
-    shader.uniform_float('color', color_solid)
-    batch.draw(shader)
+    if faces and display_mode == 'SOLID':
+        shader = utils.draw.get_shader()
+        batch = gpu_extras.batch.batch_for_shader(
+            shader,
+            'TRIS',
+            {'pos': coords},
+            indices=faces
+        )
+        shader.bind()
+        shader.uniform_float('color', color_solid)
+        batch.draw(shader)
 
     # wire geometry
     shader = utils.draw.get_shader()

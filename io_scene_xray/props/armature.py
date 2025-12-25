@@ -99,7 +99,14 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
         coords = ctx.geom['shape'][self.state]['coords']
         lines = ctx.geom['shape'][self.state]['lines']
-        faces = ctx.geom['shape'][self.state]['faces']
+
+        display_mode = utils.version.get_preferences().gl_shape_display_mode
+
+        if display_mode == 'SOLID':
+            faces = ctx.geom['shape'][self.state]['faces']
+        else:
+            # wire display mode
+            faces = None
 
         # box
         if shape.type == '1':

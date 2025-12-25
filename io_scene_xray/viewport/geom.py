@@ -78,20 +78,23 @@ def gen_cube_geom(mat, coords, lines, faces):
         (offset + 5, offset + 6), (offset + 6, offset + 7),
         (offset + 4, offset + 7), (offset + 0, offset + 3)
     ))
-    faces.extend((
-        (offset + 2, offset + 0, offset + 3),
-        (offset + 2, offset + 1, offset + 0),
-        (offset + 6, offset + 4, offset + 5),
-        (offset + 6, offset + 7, offset + 4),
-        (offset + 5, offset + 0, offset + 1),
-        (offset + 5, offset + 2, offset + 6),
-        (offset + 7, offset + 2, offset + 3),
-        (offset + 4, offset + 3, offset + 0),
-        (offset + 5, offset + 4, offset + 0),
-        (offset + 5, offset + 1, offset + 2),
-        (offset + 7, offset + 6, offset + 2),
-        (offset + 4, offset + 7, offset + 3)
-    ))
+
+    # generate face indices for solid display mode
+    if faces is not None:
+        faces.extend((
+            (offset + 2, offset + 0, offset + 3),
+            (offset + 2, offset + 1, offset + 0),
+            (offset + 6, offset + 4, offset + 5),
+            (offset + 6, offset + 7, offset + 4),
+            (offset + 5, offset + 0, offset + 1),
+            (offset + 5, offset + 2, offset + 6),
+            (offset + 7, offset + 2, offset + 3),
+            (offset + 4, offset + 3, offset + 0),
+            (offset + 5, offset + 4, offset + 0),
+            (offset + 5, offset + 1, offset + 2),
+            (offset + 7, offset + 6, offset + 2),
+            (offset + 4, offset + 7, offset + 3)
+        ))
 
 
 def gen_cylinder_geom(mat, coords, lines, faces):
@@ -115,37 +118,6 @@ def gen_cylinder_geom(mat, coords, lines, faces):
         offset=offset+num_segments+1
     )
 
-    bottom_start = 0
-    top_start = num_segments + 1
-
-    # bottom and top faces
-    for i in range(num_segments):
-        next_i = (i + 1) % num_segments
-        faces.append((
-            bottom_start + offset,
-            bottom_start + i + offset,
-            bottom_start + next_i + offset
-        ))
-        faces.append((
-            top_start + offset,
-            top_start + next_i + offset,
-            top_start + i + offset
-        ))
-
-    # side faces
-    for i in range(num_segments):
-        next_i = (i + 1) % num_segments
-        faces.append((
-            bottom_start + i + offset,
-            top_start + i + offset,
-            bottom_start + next_i + offset
-        ))
-        faces.append((
-            top_start + i + offset,
-            top_start + next_i + offset,
-            bottom_start + next_i + offset
-        ))
-
     start_index = len(coords)
 
     coords.extend([
@@ -164,52 +136,121 @@ def gen_cylinder_geom(mat, coords, lines, faces):
             (i + 1, i)
         ))
 
+    # generate face indices for solid display mode
+    if faces is not None:
+
+        bottom_start = 0
+        top_start = num_segments + 1
+
+        # bottom and top faces
+        for i in range(num_segments):
+            next_i = (i + 1) % num_segments
+            faces.append((
+                bottom_start + offset,
+                bottom_start + i + offset,
+                bottom_start + next_i + offset
+            ))
+            faces.append((
+                top_start + offset,
+                top_start + next_i + offset,
+                top_start + i + offset
+            ))
+
+        # side faces
+        for i in range(num_segments):
+            next_i = (i + 1) % num_segments
+            faces.append((
+                bottom_start + i + offset,
+                top_start + i + offset,
+                bottom_start + next_i + offset
+            ))
+            faces.append((
+                top_start + i + offset,
+                top_start + next_i + offset,
+                bottom_start + next_i + offset
+            ))
+
 
 def gen_sphere_geom(mat, coords, lines, faces):
-    offset = len(coords)
     num_segments = const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
+    radius = 1.0
 
-    # generate vertex coordinates
-    for i in range(num_segments + 1):
-        theta = math.pi * i / num_segments
-        for j in range(num_segments):
-            phi = 2 * math.pi * j / num_segments
-            x = math.sin(theta) * math.cos(phi)
-            y = math.sin(theta) * math.sin(phi)
-            z = math.cos(theta)
-            coords.append(mul(mat, mathutils.Vector((x, y, z))))
+    # generate line indices for wire display mode
+    if faces is None:
 
-    # generate indices
-    for i in range(num_segments):
-        for j in range(num_segments):
-            next_i = (i + 1)
-            next_j = (j + 1) % num_segments
+        offset = len(coords)
+        gen_circle(
+            radius,
+            num_segments,
+            lambda x, y: coords.append(mul(mat, mathutils.Vector((x, y, 0)))),
+            lines,
+            offset=offset
+        )
 
-            current = i * num_segments + j
-            next_lon = i * num_segments + next_j
-            next_lat = next_i * num_segments + j
-            next_lat_lon = next_i * num_segments + next_j
+        offset = len(coords)
+        gen_circle(
+            radius,
+            num_segments,
+            lambda x, y: coords.append(mul(mat, mathutils.Vector((0, x, y)))),
+            lines,
+            offset=offset
+        )
 
-            # generate face indices
-            if i != num_segments - 1:
-                faces.append((
-                    current + offset,
-                    next_lat + offset,
-                    next_lat_lon + offset))
-            if i != 0:
-                faces.append((
-                    current + offset,
-                    next_lat_lon + offset,
-                    next_lon + offset
-                ))
+        offset = len(coords)
+        gen_circle(
+            radius,
+            num_segments,
+            lambda x, y: coords.append(mul(mat, mathutils.Vector((y, 0, x)))),
+            lines,
+            offset=offset
+        )
 
-            # generate wire indices
-            if i == num_segments // 2:
-                lines.append((current + offset, next_lon + offset))
-            if j == num_segments // 2 or j == 0:
-                lines.append((current + offset, next_lat + offset))
-            if j == num_segments // 4 or j == num_segments // 4 * 3:
-                lines.append((current + offset, next_lat + offset))
+    # solid display mode
+    else:
+        offset = len(coords)
+
+        # generate vertex coordinates
+        for i in range(num_segments + 1):
+            theta = math.pi * i / num_segments
+            for j in range(num_segments):
+                phi = 2 * math.pi * j / num_segments
+                x = math.sin(theta) * math.cos(phi)
+                y = math.sin(theta) * math.sin(phi)
+                z = math.cos(theta)
+                coords.append(mul(mat, mathutils.Vector((x, y, z))))
+
+        # generate indices
+        for i in range(num_segments):
+            for j in range(num_segments):
+                next_i = (i + 1)
+                next_j = (j + 1) % num_segments
+
+                current = i * num_segments + j
+                next_lon = i * num_segments + next_j
+                next_lat = next_i * num_segments + j
+                next_lat_lon = next_i * num_segments + next_j
+
+                # generate face indices for solid display mode
+                if faces is not None:
+                    if i != num_segments - 1:
+                        faces.append((
+                            current + offset,
+                            next_lat + offset,
+                            next_lat_lon + offset))
+                    if i != 0:
+                        faces.append((
+                            current + offset,
+                            next_lat_lon + offset,
+                            next_lon + offset
+                        ))
+
+                # generate wire indices
+                if i == num_segments // 2:
+                    lines.append((current + offset, next_lon + offset))
+                if j == num_segments // 2 or j == 0:
+                    lines.append((current + offset, next_lat + offset))
+                if j == num_segments // 4 or j == num_segments // 4 * 3:
+                    lines.append((current + offset, next_lat + offset))
 
 
 def gen_cross_geom(size, mat, coords, lines):

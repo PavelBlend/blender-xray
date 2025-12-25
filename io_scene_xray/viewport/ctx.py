@@ -23,6 +23,7 @@ class DrawContext:
         utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
         pref = utils.version.get_preferences()
+        display_mode = utils.version.get_preferences().gl_shape_display_mode
         colors_solid = {
             'obj': pref.gl_solid_col_obj,
             'active': pref.gl_solid_col_active,
@@ -65,5 +66,6 @@ class DrawContext:
                     lines,
                     faces,
                     color_solid,
-                    color_wire
+                    color_wire,
+                    display_mode
                 )
