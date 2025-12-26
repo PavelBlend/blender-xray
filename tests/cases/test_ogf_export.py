@@ -417,7 +417,10 @@ class TestOgfExport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Vertices have too many bone weights. Excess weights were discarded. Problematic vertices are selected in Edit Mode')
+        )
         self.assertOutputFiles({
             'test_three_links_soc.ogf',
             'test_three_links_cscop.ogf',
@@ -518,7 +521,10 @@ class TestOgfExport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Vertices have too many bone weights. Excess weights were discarded. Problematic vertices are selected in Edit Mode')
+        )
         self.assertOutputFiles({
             'test_four_links_soc.ogf',
             'test_four_links_cscop.ogf',
