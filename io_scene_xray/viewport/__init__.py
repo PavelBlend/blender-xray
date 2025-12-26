@@ -12,6 +12,9 @@ if not utils.version.IS_28:
     from . import gl_utils
 
 
+draw_ctx = ctx.DrawContext()
+
+
 def get_draw_joint_limits():
     if utils.version.IS_28:
         return gpu_utils.draw_joint_limits
@@ -33,18 +36,54 @@ def get_draw_slider_slide_limits():
         return gl_utils.draw_slider_slide_limits
 
 
-def overlay_view_3d():
-    context = ctx.DrawContext()
+def _check_context(draw_ctx):
+    has_geom = False
 
+    for data_type, data in draw_ctx.geom.items():
+        for state_type, state in data.items():
+
+            coords = state['coords']
+            lines = state['lines']
+            faces = state['faces']
+
+            if coords or lines or faces:
+                has_geom = True
+
+    return has_geom
+
+
+def collect_draw_geom():
+    for obj in bpy.data.objects:
+        if obj.type == 'ARMATURE':
+            obj.data.xray.ondraw_postview(obj, draw_ctx)
+
+
+def update_draw_context():
+    for data_type, data in draw_ctx.geom.items():
+        for state_type, state in data.items():
+
+            state['coords'].clear()
+            state['lines'].clear()
+            state['faces'].clear()
+
+    collect_draw_geom()
+
+
+@bpy.app.handlers.persistent
+def update_draw_ctx(scene, depsgraph):
+    update_draw_context()
+
+
+def overlay_view_3d():
     # set opengl state for limits draw
     utils.draw.reset_gl_state()
     utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
-    for obj in bpy.data.objects:
-        if obj.type == 'ARMATURE':
-            obj.data.xray.ondraw_postview(obj, context)
+    has_geom = _check_context(draw_ctx)
+    if not has_geom:
+        update_draw_context()
 
-    context.draw()
+    draw_ctx.draw()
     utils.draw.reset_gl_state()
 
 
@@ -55,9 +94,13 @@ def register():
         'WINDOW',
         'POST_VIEW'
     )
+    bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
+    bpy.app.handlers.frame_change_post.append(update_draw_ctx)
 
 
 def unregister():
+    bpy.app.handlers.frame_change_post.remove(update_draw_ctx)
+    bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx)
     bpy.types.SpaceView3D.draw_handler_remove(
         overlay_view_3d.__handle,
         'WINDOW'
