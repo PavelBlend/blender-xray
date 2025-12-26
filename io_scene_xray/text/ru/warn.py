@@ -91,6 +91,9 @@ translations_table = (
     (warn.ogf_bad_joint, 'Неподдерживаемый тип сустава кости, используется тип Custom'),
     (warn.ogf_bad_description, 'Описание прочитано с ошибками'),
 
+    # ogf export
+    (warn.ogf_discarded_weights, 'Вершины имеют слишком много весов. Лишние веса были отброшены. Проблемные вершины выделены в Edit Mode'),
+
     # omf import
     (warn.omf_exp_no_act, 'Не найден action объекта'),
 

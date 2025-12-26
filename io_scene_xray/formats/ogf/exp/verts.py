@@ -1,9 +1,50 @@
+# blender modules
+import bpy
+
 # addon modules
 from .. import fmt
 from .... import rw
 from .... import log
 from .... import utils
 from .... import text
+
+
+class DiscardedWeights:
+    def __init__(self):
+        self.obj_name = None
+        self.verts = set()
+        self.max_weights_count = None
+
+
+def _select_verts_by_discarded_weights(ctx, bpy_obj, dis_wghts):
+
+    bpy.ops.object.select_all(action='DESELECT')
+
+    if dis_wghts.verts:
+
+        utils.version.set_active_object(bpy_obj)
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_mode(type='VERT')
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy_mesh = bpy_obj.data
+
+        vert_sel = [False, ] * len(bpy_mesh.vertices)
+        for vert_index in dis_wghts.verts:
+            vert_sel[vert_index] = True
+
+        utils.version.set_vert_sel(bpy_mesh, vert_sel)
+
+        log.warn(
+            text.warn.ogf_discarded_weights,
+            object_name=bpy_obj.name,
+            vertices_count=len(dis_wghts.verts),
+            weights_count_max=dis_wghts.max_weights_count,
+            weights_count_limit=2 if ctx.fmt_ver=='soc' else 4
+        )
 
 
 def write_verts_static(vertices_writer, vertices, norm_coef=1):
@@ -31,12 +72,12 @@ def write_verts_1l(vertices_writer, vertices, norm_coef=1):
         vertices_writer.putf('<I', vertex[6][0][0])    # bone
 
 
-def write_verts_2l(vertices_writer, vertices, norm_coef=1):
+def write_verts_2l(dis_wghts, vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         weights = vertex[6]
 
         if len(weights) > 2:
-            weights = utils.mesh.weights_top(weights, 2)
+            weights = utils.mesh.weights_top(dis_wghts, weights, 2)
 
         weight = 0
 
@@ -44,7 +85,7 @@ def write_verts_2l(vertices_writer, vertices, norm_coef=1):
         if len(weights) == 2:
             first = True
             weight0 = 0
-            for vgi, vert_weight in weights:
+            for vgi, vert_weight, _ in weights:
                 vertices_writer.putf('<H', vgi)
                 if first:
                     weight0 = vert_weight
@@ -78,12 +119,12 @@ def write_verts_2l(vertices_writer, vertices, norm_coef=1):
         vertices_writer.putf('<2f', *vertex[5])    # uv
 
 
-def write_verts_3l(vertices_writer, vertices, norm_coef=1):
+def write_verts_3l(dis_wghts, vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         weights = vertex[6]
 
         if len(weights) > 3:
-            weights = utils.mesh.weights_top(weights, 3)
+            weights = utils.mesh.weights_top(dis_wghts, weights, 3)
 
         # 3-link vertex
         if len(weights) == 3:
@@ -147,12 +188,12 @@ def write_verts_3l(vertices_writer, vertices, norm_coef=1):
         vertices_writer.putf('<2f', *vertex[5])    # uv
 
 
-def write_verts_4l(vertices_writer, vertices, norm_coef=1):
+def write_verts_4l(dis_wghts, vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         weights = vertex[6]
 
         if len(weights) > 4:
-            weights = utils.mesh.weights_top(weights, 4)
+            weights = utils.mesh.weights_top(dis_wghts, weights, 4)
 
         # 4-link vertex
         if len(weights) == 4:
@@ -247,7 +288,7 @@ def write_verts_4l(vertices_writer, vertices, norm_coef=1):
 
 
 def write_verts(
-        context,
+        ctx,
         bpy_obj,
         vertices,
         two_sided,
@@ -270,6 +311,9 @@ def write_verts(
             )
         )
 
+    dis_wghts = DiscardedWeights()
+    dis_wghts.max_weights_count = vertex_max_weights
+
     # static vertices
     if not vertex_max_weights:
         vert_fmt = fmt.VertexFormat.FVF_OGF
@@ -281,7 +325,7 @@ def write_verts(
 
     # 1-link vertices
     elif vertex_max_weights == 1:
-        if context.fmt_ver == 'soc':
+        if ctx.fmt_ver == 'soc':
             vert_fmt = fmt.VertexFormat.FVF_1L
         else:
             vert_fmt = fmt.VertexFormat.FVF_1L_CS
@@ -293,43 +337,40 @@ def write_verts(
             write_verts_1l(vertices_writer, vertices, norm_coef=-1)
 
     # 2-link vertices
-    elif vertex_max_weights == 2 or context.fmt_ver == 'soc':
-        if vertex_max_weights != 2:
-            log.debug(
-                'max_weights_count',
-                count=vertex_max_weights
-            )
-        if context.fmt_ver == 'soc':
+    elif vertex_max_weights == 2 or ctx.fmt_ver == 'soc':
+        if ctx.fmt_ver == 'soc':
             vert_fmt = fmt.VertexFormat.FVF_2L
         else:
             vert_fmt = fmt.VertexFormat.FVF_2L_CS
 
         vertices_writer.putf('<2I', vert_fmt, verts_count)
-        write_verts_2l(vertices_writer, vertices)
+        write_verts_2l(dis_wghts, vertices_writer, vertices)
 
         if two_sided:
-            write_verts_2l(vertices_writer, vertices, norm_coef=-1)
+            write_verts_2l(dis_wghts, vertices_writer, vertices, norm_coef=-1)
 
     # 3-link vertices
     elif vertex_max_weights == 3:
         vert_fmt = fmt.VertexFormat.FVF_3L_CS
 
         vertices_writer.putf('<2I', vert_fmt, verts_count)
-        write_verts_3l(vertices_writer, vertices)
+        write_verts_3l(dis_wghts, vertices_writer, vertices)
 
         if two_sided:
-            write_verts_3l(vertices_writer, vertices, norm_coef=-1)
+            write_verts_3l(dis_wghts, vertices_writer, vertices, norm_coef=-1)
 
     # 4-link vertices
     else:
         vert_fmt = fmt.VertexFormat.FVF_4L_CS
 
         vertices_writer.putf('<2I', vert_fmt, verts_count)
-        write_verts_4l(vertices_writer, vertices)
+        write_verts_4l(dis_wghts, vertices_writer, vertices)
 
         if two_sided:
-            write_verts_4l(vertices_writer, vertices, norm_coef=-1)
+            write_verts_4l(dis_wghts, vertices_writer, vertices, norm_coef=-1)
 
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
+
+    _select_verts_by_discarded_weights(ctx, bpy_obj, dis_wghts)
 
     return verts_count

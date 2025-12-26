@@ -82,6 +82,9 @@ ogf_bad_shape = 'Unsupported bone shape type using Custom'
 ogf_bad_joint = 'Unsupported bone joint type using Custom'
 ogf_bad_description = 'Description isn\'t properly read'
 
+# ogf export
+ogf_discarded_weights = 'Vertices have too many bone weights. Excess weights were discarded. Problematic vertices are selected in Edit Mode'
+
 # omf export
 omf_exp_no_act = 'Object action not found'
 

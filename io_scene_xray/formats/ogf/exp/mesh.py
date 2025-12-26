@@ -62,7 +62,7 @@ def _collect_geom(bpy_mesh, mesh, vgroups_map):
                 for group_index, weight in loop.vert[weight_layer].items():
                     remap_group_index = vgroups_map.get(group_index, None)
                     if remap_group_index is not None:
-                        weights.append((remap_group_index, weight))
+                        weights.append((remap_group_index, weight, loop.vert.index))
                         weights_count += 1
 
             vertex_max_weights = max(vertex_max_weights, weights_count)
@@ -120,7 +120,9 @@ def _collect_vgrps(bpy_obj, arm_obj, bones, bones_map):
     return vertex_groups_map
 
 
+@log.with_context('mesh')
 def _export_child(root_obj, bpy_obj, writer, ctx, vgroups_map):
+    log.update(mesh_object=bpy_obj.name)
 
     # get export mesh
     bpy_mesh, mesh = _get_temp_mesh(root_obj, bpy_obj)

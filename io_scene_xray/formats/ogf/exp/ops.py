@@ -81,7 +81,6 @@ class XRAY_OT_export_ogf_file(
         export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
 
-        selected_objs = context.selected_objects
         root_objs = utils.obj.get_root_objs(export_context)
 
         if not root_objs:
@@ -106,11 +105,6 @@ class XRAY_OT_export_ogf_file(
 
         for err in export_context.errors:
             log.err(err)
-
-        for obj in selected_objs:
-            utils.version.select_object(obj)
-
-        utils.version.set_active_object(exported_obj)
 
         return {'FINISHED'}
 

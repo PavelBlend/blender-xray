@@ -291,8 +291,12 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
     return bbox, (center, radius)
 
 
-def weights_top(weights, count):
-    return sorted(weights, key=lambda x: x[1], reverse=True)[0 : count]
+def weights_top(dis_wghts, weights, count):
+    sorted_weights = sorted(weights, key=lambda x: x[1], reverse=True)
+    used_weights = sorted_weights[0 : count]
+    discarded_weights = set(map(lambda x: x[2], sorted_weights[count : ]))
+    dis_wghts.verts.update(discarded_weights)
+    return used_weights
 
 
 def check_zero_weight_verts(bpy_obj):
