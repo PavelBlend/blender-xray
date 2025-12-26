@@ -74,6 +74,11 @@ def update_draw_ctx(scene, depsgraph):
     update_draw_context()
 
 
+@bpy.app.handlers.persistent
+def update_draw_ctx_27x(scene):
+    update_draw_context()
+
+
 def overlay_view_3d():
     # set opengl state for limits draw
     utils.draw.reset_gl_state()
@@ -94,13 +99,21 @@ def register():
         'WINDOW',
         'POST_VIEW'
     )
-    bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
-    bpy.app.handlers.frame_change_post.append(update_draw_ctx)
+    if utils.version.IS_28:
+        bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
+        bpy.app.handlers.frame_change_post.append(update_draw_ctx)
+    else:
+        bpy.app.handlers.scene_update_post.append(update_draw_ctx_27x)
+        bpy.app.handlers.frame_change_post.append(update_draw_ctx_27x)
 
 
 def unregister():
-    bpy.app.handlers.frame_change_post.remove(update_draw_ctx)
-    bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx)
+    if utils.version.IS_28:
+        bpy.app.handlers.frame_change_post.remove(update_draw_ctx)
+        bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx)
+    else:
+        bpy.app.handlers.frame_change_post.remove(update_draw_ctx_27x)
+        bpy.app.handlers.scene_update_post.remove(update_draw_ctx_27x)
     bpy.types.SpaceView3D.draw_handler_remove(
         overlay_view_3d.__handle,
         'WINDOW'
