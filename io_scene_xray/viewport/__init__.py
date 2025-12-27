@@ -58,7 +58,7 @@ def collect_draw_geom():
             obj.data.xray.ondraw_postview(obj, draw_ctx)
 
 
-def update_draw_context():
+def clear_draw_context():
     for data_type, data in draw_ctx.geom.items():
         for state_type, state in data.items():
 
@@ -66,6 +66,9 @@ def update_draw_context():
             state['lines'].clear()
             state['faces'].clear()
 
+
+def update_draw_context():
+    clear_draw_context()
     collect_draw_geom()
 
 
@@ -77,6 +80,16 @@ def update_draw_ctx(scene, depsgraph):
 @bpy.app.handlers.persistent
 def update_draw_ctx_27x(scene):
     update_draw_context()
+
+
+@bpy.app.handlers.persistent
+def clear_draw_ctx(scene, depsgraph):
+    clear_draw_context()
+
+
+@bpy.app.handlers.persistent
+def clear_draw_ctx_27x(scene):
+    clear_draw_context()
 
 
 def overlay_view_3d():
@@ -102,16 +115,20 @@ def register():
     if utils.version.IS_28:
         bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
         bpy.app.handlers.frame_change_post.append(update_draw_ctx)
+        bpy.app.handlers.load_post.append(clear_draw_ctx)
     else:
         bpy.app.handlers.scene_update_post.append(update_draw_ctx_27x)
         bpy.app.handlers.frame_change_post.append(update_draw_ctx_27x)
+        bpy.app.handlers.load_post.append(clear_draw_ctx_27x)
 
 
 def unregister():
     if utils.version.IS_28:
+        bpy.app.handlers.load_post.remove(clear_draw_ctx)
         bpy.app.handlers.frame_change_post.remove(update_draw_ctx)
         bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx)
     else:
+        bpy.app.handlers.load_post.remove(clear_draw_ctx_27x)
         bpy.app.handlers.frame_change_post.remove(update_draw_ctx_27x)
         bpy.app.handlers.scene_update_post.remove(update_draw_ctx_27x)
     bpy.types.SpaceView3D.draw_handler_remove(
