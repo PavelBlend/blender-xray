@@ -66,6 +66,7 @@ def export_mesh_name(chunked_writer, bpy_obj, bpy_root):
         mesh_name = bpy_obj.data.name
     else:
         mesh_name = bpy_obj.name
+    mesh_name = utils.ie.validate_data_block_name(mesh_name)
     packed_writer = rw.write.PackedWriter()
     packed_writer.puts(mesh_name)
     chunked_writer.put(fmt.Chunks.Mesh.MESHNAME, packed_writer)

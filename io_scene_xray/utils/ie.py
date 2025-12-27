@@ -691,3 +691,11 @@ def validate_vertex_weights(bpy_obj, arm_obj):
                 vertices_count=nonexp_group_verts_count
             )
         )
+
+
+def validate_data_block_name(name):
+    if '.' in name:
+        end = name.split('.')[-1]
+        if end.isdigit():
+            name = name[ : -len(end) - 1]
+    return name

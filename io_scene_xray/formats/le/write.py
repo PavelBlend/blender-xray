@@ -122,10 +122,7 @@ def get_obj_name(bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
 
-    if '.' in object_name:
-        end = object_name.split('.')[-1]
-        if end.isdigit():
-            object_name = object_name[ : -len(end) - 1]
+    object_name = utils.ie.validate_data_block_name(object_name)
 
     if object_name.endswith('.object'):
         object_name = object_name[ : -len('.object')]
