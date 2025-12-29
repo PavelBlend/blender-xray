@@ -27,6 +27,17 @@ class KeyFrame:
         self.shape = shape
 
 
+class KeyFrameBezier2D:
+    def __init__(self, time, value, shape, param_1, param_2, param_3, param_4):
+        self.time = time
+        self.value = value
+        self.shape = shape
+        self.param_1 = param_1
+        self.param_2 = param_2
+        self.param_3 = param_3
+        self.param_4 = param_4
+
+
 class Key:
     def __init__(self):
         self.value = None

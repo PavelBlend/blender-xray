@@ -85,9 +85,9 @@ def _read_frames_new_format(
             continuity = reader.getq16f(-32.0, 32.0)
             bias = reader.getq16f(-32.0, 32.0)
             param = (
+                reader.getq16f(-32.0, 32.0) * fps,
                 reader.getq16f(-32.0, 32.0),
-                reader.getq16f(-32.0, 32.0),
-                reader.getq16f(-32.0, 32.0),
+                reader.getq16f(-32.0, 32.0) * fps,
                 reader.getq16f(-32.0, 32.0)
             )
 
@@ -125,13 +125,13 @@ def _read_frames_old_format(
         time = reader.getf('<f')[0] * fps
         shape = interp.Shape(reader.uint32() & 0xff)
         tension, continuity, bias = reader.getf('<3f')
-        param = reader.getf('<4f')
+        param_1, param_2, param_3, param_4 = reader.getf('<4f')
 
         values.append(value)
         times.append(time)
         shapes.append(shape)
         tcb.append((tension, continuity, bias))
-        params.append(param)
+        params.append((param_1 * fps, param_2, param_3 * fps, param_4))
 
         unique_shapes.add(shape.name)
 
@@ -323,7 +323,7 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, eps=const.EPSILON):
 
     writer.putf('<2' + behav_fmt, behavior.value, behavior.value)
 
-    replace_unsupported_to = interp.Shape.TCB
+    replace_unsupported_to = interp.Shape.BEZIER_2D
     unsupported_occured = set()
 
     def generate_keys(keyframe_points):
@@ -346,20 +346,54 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, eps=const.EPSILON):
 
                 if prev_kf.interpolation == 'CONSTANT':
                     shape = interp.Shape.STEPPED
+                    keyframe = interp.KeyFrame(
+                        curr_kf.co.x / fps,
+                        curr_kf.co.y / koef,
+                        shape
+                    )
 
                 elif prev_kf.interpolation == 'LINEAR':
                     shape = interp.Shape.LINEAR
+                    keyframe = interp.KeyFrame(
+                        curr_kf.co.x / fps,
+                        curr_kf.co.y / koef,
+                        shape
+                    )
 
                 else:
                     shape = replace_unsupported_to
                     unsupported_occured.add(prev_kf.interpolation)
+                    keyframe = interp.KeyFrameBezier2D(
+                        curr_kf.co.x / fps,
+                        curr_kf.co.y / koef,
+                        shape,
+                        (curr_kf.handle_left[0] - curr_kf.co.x) / fps,
+                        (curr_kf.handle_left[1] - curr_kf.co.y) / koef,
+                        (curr_kf.handle_right[0] - curr_kf.co.x) / fps,
+                        (curr_kf.handle_right[1] - curr_kf.co.y) / koef
+                    )
+
+            else:
+                if shape == replace_unsupported_to:
+                    keyframe = interp.KeyFrameBezier2D(
+                        curr_kf.co.x / fps,
+                        curr_kf.co.y / koef,
+                        shape,
+                        (curr_kf.handle_left[0] - curr_kf.co.x) / fps,
+                        (curr_kf.handle_left[1] - curr_kf.co.y) / koef,
+                        (curr_kf.handle_right[0] - curr_kf.co.x) / fps,
+                        (curr_kf.handle_right[1] - curr_kf.co.y) / koef
+                    )
+                else:
+                    keyframe = interp.KeyFrame(
+                        curr_kf.co.x / fps,
+                        curr_kf.co.y / koef,
+                        shape
+                    )
 
             prev_kf = curr_kf
-            yield interp.KeyFrame(
-                curr_kf.co.x / fps,
-                curr_kf.co.y / koef,
-                shape
-            )
+            yield keyframe
+
 
     frame_start, frame_end = act.frame_range
     time_end = (frame_end - frame_start) / fps

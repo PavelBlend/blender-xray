@@ -182,7 +182,10 @@ def import_motion(
                     param = []
                     for param_index in range(4):
                         param_value = reader.getq16f(-32.0, 32.0)
-                        param.append(param_value)
+                        if param_index % 2:
+                            param.append(param_value)
+                        else:
+                            param.append(param_value * fps)
                     tcb.append((tension, continuity, bias))
                     params.append(param)
                     use_interpolate = True

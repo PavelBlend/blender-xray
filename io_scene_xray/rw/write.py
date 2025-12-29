@@ -43,6 +43,12 @@ class PackedWriter():
         for byte_index, byte in enumerate(byte_list):
             self.data[offset + byte_index] = byte
 
+    def putq16f(self, float_val, min_val, max_val):
+        # write quantized 16 bit float value
+        float_clamp = max(min(float_val, max_val), min_val)
+        u16_val = ((float_clamp - min_val) / (max_val - min_val)) * 0xffff
+        self.data += struct.pack('<H', int(round(u16_val, 0)))
+
 
 class ChunkedWriter():
     def __init__(self):

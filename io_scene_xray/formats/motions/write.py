@@ -36,7 +36,19 @@ def export_keyframes(writer, keyframes, fps, time_end, anm_ver):
             writer.putf('<2f', keyframe.value, keyframe.time)
             writer.putf(shape_format, keyframe.shape.value & 0xff)
 
-            writer.data.extend(params_data)
+            if keyframe.shape.value == interp.Shape.BEZIER_2D.value:
+                # tension, continuity, bias
+                writer.putf('<3f', 0.0, 0.0, 0.0)
+                # params
+                writer.putf(
+                    '<4f',
+                    keyframe.param_1,
+                    keyframe.param_2,
+                    keyframe.param_3,
+                    keyframe.param_4
+                )
+            else:
+                writer.data.extend(params_data)
 
     # version 4 and 5
     else:
@@ -48,7 +60,16 @@ def export_keyframes(writer, keyframes, fps, time_end, anm_ver):
             writer.putf(shape_format, keyframe.shape.value)
 
             if keyframe.shape != interp.Shape.STEPPED:
-                writer.data.extend(params_data)
+                if keyframe.shape.value == interp.Shape.BEZIER_2D.value:
+                    writer.putq16f(0.0, -32.0, 32.0)    # tension
+                    writer.putq16f(0.0, -32.0, 32.0)    # continuity
+                    writer.putq16f(0.0, -32.0, 32.0)    # bias
+                    writer.putq16f(keyframe.param_1, -32.0, 32.0)
+                    writer.putq16f(keyframe.param_2, -32.0, 32.0)
+                    writer.putq16f(keyframe.param_3, -32.0, 32.0)
+                    writer.putq16f(keyframe.param_4, -32.0, 32.0)
+                else:
+                    writer.data.extend(params_data)
 
     # so that the animation doesn't change its length
     if time_end is not None:
