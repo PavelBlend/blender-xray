@@ -368,6 +368,86 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
+class XRAY_OT_set_lod_path(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.set_lod_path'
+    bl_label = 'Set LOD Path'
+    bl_description = ''
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
+    )
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*.ogf',
+        options={'HIDDEN'}
+    )
+
+    def _get_meshes_folder(self):
+        meshes_folders = utils.ie.get_pref_paths('meshes_folder')
+
+        mshs_folder = ''
+        for val in meshes_folders:
+            if val:
+                mshs_folder = val
+
+        if not mshs_folder:
+            return
+
+        if not mshs_folder.endswith(os.sep):
+            mshs_folder += os.sep
+
+        mshs_folder = mshs_folder.replace(os.sep, '\\')
+
+        return mshs_folder
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
+    def execute(self, context):
+        # search object
+        obj = bpy.context.active_object
+        if not obj:
+            self.report({'ERROR'}, text.error.no_active_obj)
+            return {'CANCELLED'}
+
+        # get meshes folder
+        mshs_folder = self._get_meshes_folder()
+
+        file = bpy.path.abspath(self.filepath)
+        file = os.path.splitext(file)[0]
+        file = file.replace(os.sep, '\\')
+
+        if not file.startswith(mshs_folder):
+            self.report({'ERROR'}, text.error.not_inside_mshs_folder)
+            self.report({'ERROR'}, file)
+            self.report(
+                {'ERROR'},
+                'Meshes Folder: {}'.format(mshs_folder)
+            )
+            return {'CANCELLED'}
+
+        # set lod path
+        lod_path = file[len(mshs_folder) : ]
+        obj.xray.lodref = lod_path
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):    # pragma: no cover
+        mshs_folder = self._get_meshes_folder()
+
+        if not mshs_folder:
+            self.report({'ERROR'}, text.error.no_mshs_folder)
+            return {'FINISHED'}
+
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 class XRAY_OT_set_asset_author(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.set_asset_author'
     bl_label = 'Set Object Asset Author'
@@ -397,7 +477,8 @@ class XRAY_OT_set_asset_author(utils.ie.BaseOperator):
 classes = [
     XRAY_OT_place_objects,
     XRAY_OT_colorize_objects,
-    XRAY_OT_set_export_path
+    XRAY_OT_set_export_path,
+    XRAY_OT_set_lod_path
 ]
 
 if utils.version.has_asset_browser():

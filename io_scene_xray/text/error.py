@@ -234,5 +234,7 @@ motion_ver = 'Unsupported motions version'
 
 # operators
 no_objs_mshs_folder = 'Objects or Meshes folder not specified in the addon preferences'
+no_mshs_folder = 'Meshes folder not specified in the addon preferences'
 not_inside_objs_mshs_folder = 'The path is not inside the Meshes or Objects folder'
+not_inside_mshs_folder = 'The path is not inside the Meshes folder'
 no_objs = 'Root-objects not found'

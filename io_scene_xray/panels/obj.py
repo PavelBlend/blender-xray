@@ -168,7 +168,15 @@ def draw_object_props(layout, data):
     # lod reference
     split = utils.version.layout_split(object_box, 0.333)
     split.label(text=text.get_iface(text.iface.lod_ref) + ':')
-    split.prop(data, 'lodref', text='')
+    row = split.row(align=True)
+
+    row.prop(data, 'lodref', text='')
+
+    row.operator(
+        ops.obj.XRAY_OT_set_lod_path.bl_idname,
+        text='',
+        icon='FILE_FOLDER'
+    )
 
     # export path
     split = utils.version.layout_split(object_box, 0.333)
