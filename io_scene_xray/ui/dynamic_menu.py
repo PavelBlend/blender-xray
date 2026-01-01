@@ -143,10 +143,7 @@ class XRAY_MT_xr_template(DynamicMenu):
         return data
 
 
-classes = (
-    XRAY_OT_dynamic_menu,
-    XRAY_MT_xr_template
-)
+classes = (XRAY_OT_dynamic_menu, )
 
 
 def register():
