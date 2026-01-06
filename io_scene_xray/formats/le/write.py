@@ -122,16 +122,16 @@ def get_obj_name(bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
 
-    object_name = utils.ie.validate_data_block_name(object_name)
+    ref = utils.ie.validate_data_block_name(object_name)
 
-    if object_name.endswith('.object'):
-        object_name = object_name[ : -len('.object')]
+    if ref.endswith('.object'):
+        ref = ref[ : -len('.object')]
 
-    return object_name
+    return object_name, ref
 
 
 def write_object_body(chunked_writer, bpy_obj):
-    object_name = get_obj_name(bpy_obj)
+    object_name, ref = get_obj_name(bpy_obj)
 
     body_chunked_writer = rw.write.ChunkedWriter()
 
@@ -153,7 +153,7 @@ def write_object_body(chunked_writer, bpy_obj):
     packed_reader = rw.write.PackedWriter()
     packed_reader.putf('<I', 0)    # version
     packed_reader.putf('<I', 0)    # reserved
-    packed_reader.puts(object_name)
+    packed_reader.puts(ref)
     body_chunked_writer.put(fmt.SceneObjectChunks.REFERENCE, packed_reader)
 
     # scene object flags
