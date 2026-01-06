@@ -12,7 +12,7 @@ from ... import utils
 
 def _write_object(obj, lines, obj_index, errors):
     loc, rot, scl = le.write.get_transform(obj)
-    object_name = le.write.get_obj_name(obj)
+    object_name, ref = le.write.get_obj_name(obj)
 
     if ' ' in object_name:
         errors.append([obj.name, object_name])
@@ -24,7 +24,7 @@ def _write_object(obj, lines, obj_index, errors):
     lines.append('    flags = 0')
     lines.append('    name = {}'.format(object_name))
     lines.append('    position = {0:.6f}, {0:.6f}, {0:.6f}'.format(*loc))
-    lines.append('    reference_name = {}'.format(object_name))
+    lines.append('    reference_name = {}'.format(ref))
     lines.append('    rotation = {0:.6f}, {0:.6f}, {0:.6f}'.format(*rot))
     lines.append('    scale = {0:.6f}, {0:.6f}, {0:.6f}'.format(*scl))
     lines.append('    version = {}'.format(le.fmt.OBJECT_VER_COP))
