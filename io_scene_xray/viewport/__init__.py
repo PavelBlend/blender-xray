@@ -55,7 +55,13 @@ def _check_context(draw_ctx):
 def collect_draw_geom():
     for obj in bpy.data.objects:
         if obj.type == 'ARMATURE':
-            obj.data.xray.ondraw_postview(obj, draw_ctx)
+            obj.data.xray.ondraw_postview(obj, draw_ctx, 'SHAPES')
+
+
+def draw_limits():
+    obj = bpy.context.active_object
+    if obj.type == 'ARMATURE':
+        obj.data.xray.ondraw_postview(obj, draw_ctx, 'LIMITS')
 
 
 def clear_draw_context():
@@ -97,10 +103,15 @@ def overlay_view_3d():
     utils.draw.reset_gl_state()
     utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
+    # collect shapes geometry
     has_geom = _check_context(draw_ctx)
     if not has_geom:
         update_draw_context()
 
+    # draw limits
+    draw_limits()
+
+    # draw shapes
     draw_ctx.draw()
     utils.draw.reset_gl_state()
 

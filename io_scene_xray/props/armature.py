@@ -321,7 +321,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             else:
                 bgl.glPopMatrix()
 
-    def ondraw_postview(self, obj, ctx):    # pragma: no cover
+    def ondraw_postview(self, obj, ctx, geom_type):    # pragma: no cover
 
         # get armature state
         hide_arm_obj = not utils.version.get_object_visibility(obj)
@@ -342,10 +342,13 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         arm_data = obj.data.xray
         self.mul = utils.version.get_multiply()
 
+        draw_shapes = geom_type == 'SHAPES'
+        draw_limits = geom_type == 'LIMITS'
+
         # what to display
-        self.shapes = arm_data.display_bone_shapes
-        self.centers = arm_data.display_bone_mass_centers
-        self.limits = arm_data.display_bone_limits
+        self.shapes = arm_data.display_bone_shapes and draw_shapes
+        self.centers = arm_data.display_bone_mass_centers and draw_shapes
+        self.limits = arm_data.display_bone_limits and draw_limits
 
         # generate geometry
         self._gen_geometry(obj, ctx)
