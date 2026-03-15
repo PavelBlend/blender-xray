@@ -60,7 +60,7 @@ def collect_draw_geom():
 
 def draw_limits():
     obj = bpy.context.active_object
-    if obj.type == 'ARMATURE':
+    if obj and obj.type == 'ARMATURE':
         obj.data.xray.ondraw_postview(obj, draw_ctx, 'LIMITS')
 
 
