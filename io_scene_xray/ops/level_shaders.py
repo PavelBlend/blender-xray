@@ -270,6 +270,7 @@ def _create_image_nodes(mat, diff_img, bump_1, bump_2, xray):
         # create bump node
         bump_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
         bump_node.image = bump
+        bump_node.image.colorspace_settings.name = 'Non-Color'
         bump_node.select = False
         bump_node.location.x = -200
         bump_node.location.y = -400 - index*300
