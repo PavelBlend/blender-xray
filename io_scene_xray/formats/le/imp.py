@@ -72,6 +72,7 @@ def _import_object(
     if os.path.exists(import_path):
         # import file
         imp_obj = obj.imp.main.import_file(import_path, import_context)
+        imp_obj.rotation_mode = 'YXZ'
         all_objects.append(imp_obj)
         utils.version.unlink_object_from_collections(imp_obj)
         utils.ie.set_export_path(imp_obj, '', object_path)
