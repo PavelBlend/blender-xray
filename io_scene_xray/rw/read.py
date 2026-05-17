@@ -18,6 +18,7 @@ from . import lzhuf
 from .. import log
 
 
+CHAR_NUL = 0x0    # end of string
 CHAR_LINE_FEED = 0xa    # '\n' char
 CHAR_CARRIAGE_RETURN = 0xd    # '\r' char
 
@@ -34,18 +35,19 @@ class FastBytes:
         return data[offs] | (data[offs + 1] << 8) | (data[offs + 2] << 16) | (data[offs + 3] << 24)
 
     @staticmethod
-    def skip_str_at(data, offs):
+    def _skip_str(data, offs, terminator):
         dlen = len(data)
-        while (offs < dlen) and (data[offs] != 0):
+        while (offs < dlen) and (data[offs] != terminator):
             offs += 1
         return offs + 1
 
     @staticmethod
+    def skip_str_at(data, offs):
+        return FastBytes._skip_str(data, offs, CHAR_NUL)
+
+    @staticmethod
     def skip_str_at_rn(data, offs):
-        dlen = len(data)
-        while (offs < dlen) and (data[offs] != CHAR_LINE_FEED):
-            offs += 1
-        return offs + 1
+        return FastBytes._skip_str(data, offs, CHAR_LINE_FEED)
 
     @staticmethod
     def str_at(data, offs):
