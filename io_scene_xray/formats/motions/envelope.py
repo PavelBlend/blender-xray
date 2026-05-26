@@ -396,7 +396,7 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, eps=const.EPSILON):
 
 
     frame_start, frame_end = act.frame_range
-    time_end = (frame_end - frame_start) / fps
+    time_end = frame_end / fps
 
     kf_writer = rw.write.PackedWriter()
     keys = generate_keys(fcurve.keyframe_points)
