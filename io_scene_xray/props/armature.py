@@ -313,6 +313,8 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
                     bgl.glPopMatrix()
                     bgl.glPushMatrix()
                     bgl.glMultMatrixf(viewport.gl_utils.matrix_to_buffer(slider_mat.transposed()))
+                colors_solid, colors_wire = utils.draw.get_shape_colors()
+                color = colors_wire[self.state]
                 draw_slider_slide_limits = viewport.get_draw_slider_slide_limits()
                 draw_slider_slide_limits(ik.slide_min, ik.slide_max, color)
 

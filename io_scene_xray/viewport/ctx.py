@@ -22,20 +22,8 @@ class DrawContext:
     def draw(self):
         utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
-        pref = utils.version.get_preferences()
         display_mode = utils.version.get_preferences().gl_shape_display_mode
-        colors_solid = {
-            'obj': pref.gl_solid_col_obj,
-            'active': pref.gl_solid_col_active,
-            'sel': pref.gl_solid_col_sel,
-            'desel': pref.gl_solid_col_desel
-        }
-        colors_wire = {
-            'obj': pref.gl_object_mode_shape_color,
-            'active': pref.gl_active_shape_color,
-            'sel': pref.gl_select_shape_color,
-            'desel': pref.gl_shape_color
-        }
+        colors_solid, colors_wire = utils.draw.get_shape_colors()
 
         if utils.version.IS_28:
             draw_fun = gpu_utils.draw_geom

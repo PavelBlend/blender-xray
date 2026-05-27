@@ -201,3 +201,20 @@ def reset_gl_state():
     else:
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDisable(bgl.GL_CULL_FACE)
+
+
+def get_shape_colors():
+    pref = version.get_preferences()
+    colors_solid = {
+        'obj': pref.gl_solid_col_obj,
+        'active': pref.gl_solid_col_active,
+        'sel': pref.gl_solid_col_sel,
+        'desel': pref.gl_solid_col_desel
+    }
+    colors_wire = {
+        'obj': pref.gl_object_mode_shape_color,
+        'active': pref.gl_active_shape_color,
+        'sel': pref.gl_select_shape_color,
+        'desel': pref.gl_shape_color
+    }
+    return colors_solid, colors_wire
