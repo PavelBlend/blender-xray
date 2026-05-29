@@ -23,7 +23,7 @@ TWO_MEGABYTES = 1024 * 1024 * 2
 VERTEX_SIZE = 32
 MAX_TILE = 16
 QUANT = 32768 / MAX_TILE
-FRAC_MIN = 1 / 0xffff
+FRAC_MIN = 1e-6
 
 
 def write_visual_bounding_sphere(header_writer, center, radius):
