@@ -23,6 +23,7 @@ TWO_MEGABYTES = 1024 * 1024 * 2
 VERTEX_SIZE = 32
 MAX_TILE = 16
 QUANT = 32768 / MAX_TILE
+FRAC_MIN = 1 / 0xffff
 
 
 def write_visual_bounding_sphere(header_writer, center, radius):
@@ -284,9 +285,10 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         uv_coeff = fmt.UV_COEFFICIENT_2
 
     # tree shader params
-    frac_low = get_bbox_center(bpy_obj.bound_box)
-    frac_low[2] = bpy_obj.bound_box[0][2]
-    frac_y_size = bpy_obj.bound_box[6][2] - bpy_obj.bound_box[0][2]
+    bbox = bpy_obj.bound_box
+    frac_low = get_bbox_center(bbox)
+    frac_low[2] = bbox[0][2]
+    frac_y_size = max(bbox[6][2] - bbox[0][2], FRAC_MIN)
 
     for face in bm.faces:
         face_indices = []
