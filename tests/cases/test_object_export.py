@@ -7,6 +7,7 @@ import re
 
 
 class TestObjectExport(utils.XRayTestCase):
+
     def test_export_single(self):
         # Arrange
         self._create_objects()
@@ -529,21 +530,6 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Object has no material: "{0}"'.format('tobj1'))
         )
 
-    def _create_objects(self, create_uv=True, create_material=True, count=3):
-        bmesh = utils.create_bmesh((
-            (0, 0, 0),
-            (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
-        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
-
-        objs = []
-        for i in range(count):
-            obj = utils.create_object(bmesh, create_material)
-            obj.name = 'tobj%d' % (i + 1)
-            objs.append(obj)
-        if len(objs) > 1:
-            objs[1].xray.export_path = 'a/b'
-        return objs
-
     def test_export_split_normals(self):
         # Arrange
         self._create_objects()
@@ -805,8 +791,24 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Skipped motion references legacy data')
         )
 
+    def _create_objects(self, create_uv=True, create_material=True, count=3):
+        bmesh = utils.create_bmesh((
+            (0, 0, 0),
+            (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
+        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
+
+        objs = []
+        for i in range(count):
+            obj = utils.create_object(bmesh, create_material)
+            obj.name = 'tobj%d' % (i + 1)
+            objs.append(obj)
+        if len(objs) > 1:
+            objs[1].xray.export_path = 'a/b'
+        return objs
+
 
 def _create_armature(targets):
+
     def create_bone(name, tail, parent=None):
         bone = arm.edit_bones.new(name)
         bone.tail = tail
