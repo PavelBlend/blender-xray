@@ -792,10 +792,20 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
     def _create_objects(self, create_uv=True, create_material=True, count=3):
-        bmesh = utils.create_bmesh((
-            (0, 0, 0),
-            (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
-        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
+        verts = (
+            (0.0, 0.0, 0.0),
+            (-1.0, -1.0, 0.0),
+            (+1.0, -1.0, 0.0),
+            (+1.0, +1.0, 0.0),
+            (-1.0, +1.0, 0.0)
+        )
+        faces = (
+            (0, 1, 2),
+            (0, 2, 3),
+            (0, 3, 4),
+            (0, 4, 1)
+        )
+        bmesh = utils.create_bmesh(verts, faces, create_uv)
 
         objs = []
         for i in range(count):
