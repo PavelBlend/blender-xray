@@ -248,7 +248,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                 ctx = bpy.context.copy()
                 ctx['area'] = area
                 ctx['region'] = area.regions[-1]
-                bpy.ops.view3d.view_selected(ctx)
+                utils.version.run_op_ctx(bpy.ops.view3d.view_selected, ctx)
 
                 for space in area.spaces:
                     if space.type == 'VIEW_3D':
@@ -293,7 +293,24 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         log.general_log = None
 
         self.set_clip_end(self.clip_end_old)
-        bpy.ops.view3d.view_axis(type='TOP')
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+
+                # set top view
+                ctx = bpy.context.copy()
+                ctx['area'] = area
+                ctx['region'] = area.regions[-1]
+                utils.version.run_op_ctx(
+                    bpy.ops.view3d.view_axis,
+                    ctx,
+                    type='TOP'
+                )
+
+                # set ortho view
+                space = area.spaces.active
+                space.region_3d.view_perspective = 'ORTHO'
+
         return {'CANCELLED'}
 
     @log.execute_with_logger
