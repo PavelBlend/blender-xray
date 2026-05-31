@@ -44,6 +44,29 @@ class TestObjectExport(utils.XRayTestCase):
             'a/b/tobj2.object'
         })
 
+    def test_export_custom_normals(self):
+        # Arrange
+        obj = self._create_objects(count=1)[0]
+        # Add any modifier to test the application
+        # of modifiers in Custom Normals mode
+        obj.modifiers.new('Smooth', 'SMOOTH')
+        pref = utils.get_preferences()
+        pref.object_split_normals = True
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object='tobj1',
+            filepath=self.outpath('test_custom_normals.object'),
+            texture_name_from_image_path=False
+        )
+
+        pref.object_split_normals = False
+
+        # Assert
+        self.assertOutputFiles({
+            'test_custom_normals.object'
+        })
+
     def test_export_using_context(self):
         # remove default objects (cube, camera, lamp)
         for obj in bpy.data.objects:
