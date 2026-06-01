@@ -107,8 +107,8 @@ def write_bone_names(bones, scale, ogf_writer):
         box_rot, box_trn, box_hsz = _get_bone_bound(bone, scale, multiply)
 
         # write
-        bones_writer.puts(bone.name)
-        bones_writer.puts(parent_name)
+        bones_writer.puts(bone.name.lower())
+        bones_writer.puts(parent_name.lower())
         bones_writer.putf('<15f', *box_rot, *box_trn, *box_hsz)
 
     # write chunk

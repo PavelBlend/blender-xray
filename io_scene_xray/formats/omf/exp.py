@@ -124,9 +124,9 @@ def read_bone_parts(packed_reader, params_version):
             if params_version == 1:
                 bone.index = packed_reader.uint32()
             elif params_version == 2:
-                bone.name = packed_reader.gets()
+                bone.name = packed_reader.gets().lower()
             elif params_version in (3, 4):
-                bone.name = packed_reader.gets()
+                bone.name = packed_reader.gets().lower()
                 bone.index = packed_reader.uint32()
             else:
                 raise BaseException('Unknown params version')
@@ -302,7 +302,7 @@ def get_pose_bones_and_groups(context):
         if bone.xray.exportable:
             pose_bone = arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
-            bone_name = pose_bone.name
+            bone_name = pose_bone.name.lower()
             group = utils.version.get_bone_group(arm_obj, pose_bone)
 
             if group:
