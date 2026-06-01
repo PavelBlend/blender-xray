@@ -16,7 +16,7 @@ from .... import rw
 
 def write_level(context, file_path, bpy_obj):
     level = types.Level()
-    level.name = os.path.dirname(os.path.basename(file_path))
+    level.name = os.path.basename(os.path.dirname(file_path))
 
     level_path = bpy_obj.name
     levels_folders = utils.ie.get_pref_paths('levels_folder')
