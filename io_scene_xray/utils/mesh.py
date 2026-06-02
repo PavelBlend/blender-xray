@@ -27,7 +27,7 @@ def _create_temp_obj(exp_obj):
 def _remove_temp_obj(temp_obj, temp_mesh):
 
     if temp_obj:
-        bpy.data.objects.remove(temp_obj)
+        version.remove_object(temp_obj)
 
     if temp_mesh:
         bpy.data.meshes.remove(temp_mesh)
