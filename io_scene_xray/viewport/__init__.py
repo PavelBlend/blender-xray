@@ -127,6 +127,10 @@ def register():
         bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
         bpy.app.handlers.frame_change_post.append(update_draw_ctx)
         bpy.app.handlers.load_post.append(clear_draw_ctx)
+    elif utils.version.IS_28:
+        bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx_27x)
+        bpy.app.handlers.frame_change_post.append(update_draw_ctx_27x)
+        bpy.app.handlers.load_post.append(clear_draw_ctx_27x)
     else:
         bpy.app.handlers.scene_update_post.append(update_draw_ctx_27x)
         bpy.app.handlers.frame_change_post.append(update_draw_ctx_27x)
