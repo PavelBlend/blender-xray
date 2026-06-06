@@ -138,10 +138,14 @@ def register():
 
 
 def unregister():
-    if utils.version.IS_28:
+    if utils.version.IS_281:
         bpy.app.handlers.load_post.remove(clear_draw_ctx)
         bpy.app.handlers.frame_change_post.remove(update_draw_ctx)
         bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx)
+    elif utils.version.IS_28:
+        bpy.app.handlers.load_post.remove(clear_draw_ctx_27x)
+        bpy.app.handlers.frame_change_post.remove(update_draw_ctx_27x)
+        bpy.app.handlers.depsgraph_update_post.remove(update_draw_ctx_27x)
     else:
         bpy.app.handlers.load_post.remove(clear_draw_ctx_27x)
         bpy.app.handlers.frame_change_post.remove(update_draw_ctx_27x)
