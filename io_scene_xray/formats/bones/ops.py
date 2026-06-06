@@ -181,7 +181,7 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         # export properties
         exp_parts = self.export_bone_parts
         exp_props = self.export_bone_properties
-    
+
         # export context
         export_context = ExportBonesContext()
         export_context.export_bone_parts = exp_parts

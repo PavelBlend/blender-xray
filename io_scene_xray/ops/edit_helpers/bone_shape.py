@@ -106,7 +106,7 @@ class _BoneShapeEditHelper:
         armature.bones.active = bone
         armature.bones[target_name].select = False
         self.update(context)
-    
+
     def update(self, context):
         helper, target = self.get_helper(context)
         if helper is None:

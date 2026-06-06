@@ -40,10 +40,10 @@ class DrawContext:
                 if not len(coords):
                     continue
 
-                if data_type == 'shape': 
+                if data_type == 'shape':
                     utils.draw.set_gl_blend_mode()
                     utils.draw.set_gl_state()
-                elif data_type == 'mass': 
+                elif data_type == 'mass':
                     utils.draw.reset_gl_state()
 
                 color_solid = colors_solid[state_type]

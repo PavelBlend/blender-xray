@@ -277,7 +277,7 @@ def remove_object(obj):
         bpy.context.scene.objects.unlink(obj)
         obj.user_clear()
         bpy.data.objects.remove(obj)
-    
+
     else:
         bpy.data.objects.remove(obj, do_unlink=True)
 

@@ -277,7 +277,7 @@ def get_arm_objs(operator, context):
             'There are no armatures among the selected objects'
         )
         return
-    
+
     if not arm_count and not sel_objs_count:
         operator.report({'ERROR'}, 'No selected objects')
         return

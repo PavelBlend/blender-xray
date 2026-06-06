@@ -787,7 +787,7 @@ custom_props = {
         default='accrue'
     ),
     'action_falloff': bpy.props.StringProperty(
-        name='Falloff', 
+        name='Falloff',
         default='falloff'
     ),
     'action_bone_part': bpy.props.StringProperty(
