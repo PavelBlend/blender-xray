@@ -123,7 +123,7 @@ def register():
         'WINDOW',
         'POST_VIEW'
     )
-    if utils.version.IS_28:
+    if utils.version.IS_281:
         bpy.app.handlers.depsgraph_update_post.append(update_draw_ctx)
         bpy.app.handlers.frame_change_post.append(update_draw_ctx)
         bpy.app.handlers.load_post.append(clear_draw_ctx)
