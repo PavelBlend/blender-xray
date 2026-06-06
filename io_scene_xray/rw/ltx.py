@@ -25,8 +25,12 @@ class LtxParser:
 
     def from_file(self, path):
         self.path = path
-        with open(self.path, 'r') as file:
-            self._data = file.read()
+        try:
+            with open(self.path, 'r', encoding='cp1251') as file:
+                self._data = file.read()
+        except:
+            with open(self.path, 'r', encoding='utf-8') as file:
+                self._data = file.read()
         self._parse()
 
     def from_str(self, data):
@@ -113,6 +117,9 @@ class LtxParser:
 
         if parent_key == '$fs_root$':
             fs_path = os.path.dirname(self.path).replace('\\', os.sep)
+            if len(line_parts) > 3:
+                value = line_parts[3]
+                fs_path = os.path.join(fs_path, value).replace('\\', os.sep)
             self.values[prop_name] = fs_path
 
         elif parent_key.startswith('$') and parent_key.endswith('$'):
@@ -129,17 +136,12 @@ class LtxParser:
         else:
             sdk_root = self.values.get('$sdk_root$', None)
 
-            if sdk_root is None:
-                utils.draw.show_message(
-                    text.get_tip(text.error.ltx_no_param),
-                    ('$sdk_root$', ),
-                    text.get_tip(text.error.error_title),
-                    'ERROR'
-                )
-                raise BaseException('error')
+            if sdk_root:
+                value = os.path.join(sdk_root, parent_key)
+                value = value.replace('\\', os.sep)
+            else:
+                value = parent_key
 
-            value = os.path.join(sdk_root, parent_key)
-            value = value.replace('\\', os.sep)
             self.values[prop_name] = value
 
         self._line_index += 1
@@ -156,10 +158,7 @@ class LtxParser:
                 self._parse_sections(line)
 
             elif line.startswith('$'):    # fs.ltx
-                try:
-                    self._parse_fs(line)
-                except:
-                    raise BaseException('error')
+                self._parse_fs(line)
 
             elif line.startswith('#include'):
                 self._line_index += 1

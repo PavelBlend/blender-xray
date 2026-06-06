@@ -16,6 +16,40 @@ from .. import utils
 from .. import text
 
 
+class PathsContext:
+
+    def __init__(self):
+        self.file_not_found = set()
+        self.prop_not_found = set()
+
+    def report(self):
+
+        # not found props
+        not_found_props = list(self.prop_not_found)
+        not_found_props.sort()
+        if not_found_props:
+            utils.draw.show_message(
+                text.get_tip(text.error.ltx_no_param),
+                not_found_props,
+                text.get_tip(text.error.error_title),
+                'ERROR'
+            )
+
+        # not found paths
+        not_found_paths = [
+            os.path.abspath(path)
+            for path in self.file_not_found
+        ]
+        not_found_paths.sort()
+        if not_found_paths:
+            utils.draw.show_message(
+                text.get_tip(text.error.file_folder_not_found),
+                not_found_paths,
+                text.get_tip(text.error.error_title),
+                'ERROR'
+            )
+
+
 def _norm_path(path):
     if path and path[-1] == os.sep:
         path = path[ : -1]
@@ -78,10 +112,11 @@ def update_menu_func(self, context):
 
 
 def update_paths(pref, context):
+
     if not pref.use_update:
         return
 
-    not_found_paths = set()
+    paths_ctx = PathsContext()
 
     game_folder, raw_folder = _get_game_raw_folders(pref)
 
@@ -92,10 +127,13 @@ def update_paths(pref, context):
             setattr(pref, build_auto_id(prop), prop_val)
             continue
 
-        value, not_found = _auto_path(pref, prop, game_folder, raw_folder)
-
-        if not_found:
-            not_found_paths.add(os.path.abspath(not_found))
+        value = _auto_path(
+            pref,
+            prop,
+            paths_ctx,
+            game_folder,
+            raw_folder
+        )
 
         prop_type = path_props_types[prop]
         if value and prop_type == DIRECTORY:
@@ -104,15 +142,7 @@ def update_paths(pref, context):
 
         setattr(pref, build_auto_id(prop), value)
 
-    if not_found_paths:
-        not_found_paths = list(not_found_paths)
-        not_found_paths.sort()
-        utils.draw.show_message(
-            text.get_tip(text.error.file_folder_not_found),
-            not_found_paths,
-            text.get_tip(text.error.error_title),
-            'ERROR'
-        )
+    paths_ctx.report()
 
 
 class XRayKeyMap(bpy.types.PropertyGroup):
@@ -862,9 +892,11 @@ def _clear_paths():
     pref.use_update = True
 
 
-def _auto_path_fs_ltx(prefs, prop_name):
+def _auto_path_fs_ltx(prefs, prop_name, paths_ctx):
+
     if not os.path.exists(prefs.fs_ltx_file):
-        return '', prefs.fs_ltx_file
+        paths_ctx.file_not_found.add(prefs.fs_ltx_file)
+        return ''
 
     try:
         fs = rw.ltx.LtxParser()
@@ -881,37 +913,27 @@ def _auto_path_fs_ltx(prefs, prop_name):
         _clear_paths()
         raise BaseException('error')
 
-    except BaseException:
-        _clear_paths()
-        raise BaseException('error')
-
     prop_key, file_name = fs_props[prop_name]
     dir_path = fs.values.get(prop_key, None)
 
     if dir_path is None:
-        prop_key = fs_props_synonyms.get(prop_key, None)
-        if prop_key is not None:
-            dir_path = fs.values.get(prop_key, None)
+        syn_prop_key = fs_props_synonyms.get(prop_key, None)
+        if syn_prop_key is not None:
+            dir_path = fs.values.get(syn_prop_key, None)
 
     if dir_path is None:
-        utils.draw.show_message(
-            text.get_tip(text.error.ltx_no_param),
-            (prop_key, ),
-            text.get_tip(text.error.error_title),
-            'ERROR'
-        )
-        _clear_paths()
-        raise BaseException('error')
+        paths_ctx.prop_not_found.add(prop_key)
+        dir_path = ''
 
     if file_name:
         result = os.path.join(dir_path, file_name)
     else:
         result = dir_path
 
-    return result, None
+    return result
 
 
-def _auto_path_prop(prefs, prop_name, game_folder, raw_folder):
+def _auto_path_prop(prefs, prop_name, paths_ctx, game_folder, raw_folder):
     result = ''
     parent = path_parents[prop_name]
     suffix = path_props_suffix_values[prop_name]
@@ -944,16 +966,25 @@ def _auto_path_prop(prefs, prop_name, game_folder, raw_folder):
         checker = os.path.isfile
 
     if checker(result):
-        return result, None
+        return result
 
-    return '', result
+    if result:
+        paths_ctx.file_not_found.add(result)
+
+    return ''
 
 
-def _auto_path(prefs, prop_name, game_folder, raw_folder):
+def _auto_path(prefs, prop_name, paths_ctx, game_folder, raw_folder):
     if prefs.fs_ltx_file:
-        return _auto_path_fs_ltx(prefs, prop_name)
+        return _auto_path_fs_ltx(prefs, prop_name, paths_ctx)
     else:
-        return _auto_path_prop(prefs, prop_name, game_folder, raw_folder)
+        return _auto_path_prop(
+            prefs,
+            prop_name,
+            paths_ctx,
+            game_folder,
+            raw_folder
+        )
 
 
 path_props_suffix_values = {
