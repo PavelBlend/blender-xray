@@ -135,7 +135,8 @@ class XRAY_OT_resize_bones(utils.ie.BaseOperator):
                 bones = []
                 for edit_bone in bpy_armature.edit_bones:
                     bone = bpy_armature.bones[edit_bone.name]
-                    if bone.select:
+                    bone_select = utils.version.get_bone_sel(obj, bone)
+                    if bone_select:
                         bones.append(bone.name)
             else:
                 bones = [bone.name for bone in bpy_armature.bones]

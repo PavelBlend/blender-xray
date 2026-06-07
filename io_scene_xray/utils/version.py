@@ -54,6 +54,10 @@ def is_blender_44():
     return bpy.app.version >= (4, 4, 0)
 
 
+def is_blender_5():
+    return bpy.app.version >= (5, 0, 0)
+
+
 def support_principled_shader():
     return bpy.app.version >= (2, 79, 0)
 
@@ -101,6 +105,7 @@ IS_34 = is_blender_34()
 IS_4 = is_blender_4()
 IS_41 = is_blender_41()
 IS_44 = is_blender_44()
+IS_5 = is_blender_5()
 
 
 def get_import_export_menus():
@@ -572,6 +577,34 @@ def get_used_mats(bpy_mesh):
 
     mats = tuple(set(mats))
     return mats
+
+
+def _get_bone(obj, bone):
+    if IS_5:
+        bone = obj.pose.bones[bone.name]
+    return bone
+
+
+def _get_bone_prop(obj, bone, prop):
+    bone = _get_bone(obj, bone)
+    return getattr(bone, prop)
+
+
+def get_bone_vis(obj, bone):
+    return _get_bone_prop(obj, bone, 'hide')
+
+
+def get_bone_sel(obj, bone):
+    return _get_bone_prop(obj, bone, 'select')
+
+
+def _set_bone_prop(obj, bone, prop, value):
+    bone = _get_bone(obj, bone)
+    return setattr(bone, prop, value)
+
+
+def set_bone_sel(obj, bone, value):
+    _set_bone_prop(obj, bone, 'select', value)
 
 
 def get_bone_groups(obj):
