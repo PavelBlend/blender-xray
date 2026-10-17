@@ -191,17 +191,32 @@ class TestAnmExport(tests.utils.XRayTestCase):
 
         for axis_index in range(3):
             if loc:
-                fcurve = act.fcurves.new('location', index=axis_index)
+                fcurve = tests.utils.create_fcurve(
+                    act,
+                    'location',
+                    axis_index,
+                    ''
+                )
                 fcurve.keyframe_points.insert(0, 0)
                 fcurve.keyframe_points.insert(10, 1)
 
             if rot:
-                fcurve = act.fcurves.new('rotation_euler', index=axis_index)
+                fcurve = tests.utils.create_fcurve(
+                    act,
+                    'rotation_euler',
+                    axis_index,
+                    ''
+                )
                 fcurve.keyframe_points.insert(0, 0)
                 fcurve.keyframe_points.insert(10, 1)
 
             if col:
-                fcurve = act.fcurves.new('color', index=axis_index)
+                fcurve = tests.utils.create_fcurve(
+                    act,
+                    'color',
+                    axis_index,
+                    ''
+                )
                 fcurve.keyframe_points.insert(1, 0)
                 fcurve.keyframe_points.insert(10, 1)
 

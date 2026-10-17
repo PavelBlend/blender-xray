@@ -10,6 +10,9 @@ import bmesh
 import addon_utils
 import mathutils
 
+if bpy.app.version >= (5, 0, 0):
+    import bpy_extras.anim_utils
+
 # addon modules
 import io_scene_xray
 from io_scene_xray.utils.ie import BaseOperator as TestReadyOperator
@@ -265,6 +268,32 @@ def remove_object(obj):
 def remove_all_objects():
     for obj in bpy.data.objects:
         remove_object(obj)
+
+
+def create_fcurve(act, data_path, index, group):
+    if bpy.app.version >= (5, 0, 0):
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurve = cbag.fcurves.new(data_path, index=index, group_name=group)
+    else:
+        fcurve = act.fcurves.new(data_path, index=index, action_group=group)
+    return fcurve
+
+
+def get_fcurves(act):
+    if bpy.app.version >= (5, 0, 0):
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurves = cbag.fcurves
+    else:
+        fcurves = act.fcurves
+    return fcurves
 
 
 def create_tex(mat, tex_name):

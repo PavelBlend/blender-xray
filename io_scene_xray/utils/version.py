@@ -108,6 +108,10 @@ IS_44 = is_blender_44()
 IS_5 = is_blender_5()
 
 
+if IS_5:
+    import bpy_extras.anim_utils
+
+
 def get_import_export_menus():
     if IS_28:
         import_menu = bpy.types.TOPBAR_MT_file_import
@@ -471,6 +475,32 @@ def set_empty_draw_size(empty_object, draw_size):
         empty_object.empty_display_size = draw_size
     else:
         empty_object.empty_draw_size = draw_size
+
+
+def create_fcurve(act=None, data_path=None, index=0, group=''):
+    if IS_5:
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurve = cbag.fcurves.new(data_path, index=index, group_name=group)
+    else:
+        fcurve = act.fcurves.new(data_path, index=index, action_group=group)
+    return fcurve
+
+
+def get_fcurves(act=None):
+    if IS_5:
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurves = cbag.fcurves
+    else:
+        fcurves = act.fcurves
+    return fcurves
 
 
 def set_action_slot(bpy_obj, action):

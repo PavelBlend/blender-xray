@@ -75,12 +75,42 @@ def _import(file_path, creader, context):
     loc = 'location'
     rot = 'rotation_euler'
     fcs = (
-        action.fcurves.new(loc, index=0, action_group=name),
-        action.fcurves.new(loc, index=1, action_group=name),
-        action.fcurves.new(loc, index=2, action_group=name),
-        action.fcurves.new(rot, index=0, action_group=name),
-        action.fcurves.new(rot, index=1, action_group=name),
-        action.fcurves.new(rot, index=2, action_group=name)
+        utils.version.create_fcurve(
+            act=action,
+            data_path=loc,
+            index=0,
+            group=name
+        ),
+        utils.version.create_fcurve(
+            act=action,
+            data_path=loc,
+            index=1,
+            group=name
+        ),
+        utils.version.create_fcurve(
+            act=action,
+            data_path=loc,
+            index=2,
+            group=name
+        ),
+        utils.version.create_fcurve(
+            act=action,
+            data_path=rot,
+            index=0,
+            group=name
+        ),
+        utils.version.create_fcurve(
+            act=action,
+            data_path=rot,
+            index=1,
+            group=name
+        ),
+        utils.version.create_fcurve(
+            act=action,
+            data_path=rot,
+            index=2,
+            group=name
+        )
     )
     converted_warrning = False
     unique_shapes = set()

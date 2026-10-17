@@ -232,8 +232,8 @@ class TestOgfExport(tests.utils.XRayTestCase):
         motion.name = act.name
 
         for i in range(3):
-            loc = act.fcurves.new('pose.bones["test_bone"].location', index=i)
-            rot = act.fcurves.new('pose.bones["test_bone"].rotation_euler', index=i)
+            loc = tests.utils.create_fcurve(act, 'pose.bones["test_bone"].location', i, '')
+            rot = tests.utils.create_fcurve(act, 'pose.bones["test_bone"].rotation_euler', i, '')
             for i in range(2):
                 loc.keyframe_points.insert(i*5, i*1)
                 rot.keyframe_points.insert(i*5, i*0.1)
