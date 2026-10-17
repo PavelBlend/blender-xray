@@ -13,8 +13,8 @@ def np(path):
 
 def reset_settings(preferences):
     for prop_name in addon_prefs.props.__AUTO_PROPS__:
-        preferences[prop_name] = ''
-        preferences[prop_name + '_auto'] = ''
+        setattr(preferences, prop_name, '')
+        setattr(preferences, prop_name + '_auto', '')
 
 
 class TestPreferences(utils.XRayTestCase):
