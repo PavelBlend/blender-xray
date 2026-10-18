@@ -143,7 +143,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             active = bpy.context.active_bone
             if active and active.id_data == obj.data and active.name == bone.name:
                 self.state = 'active'
-            elif bone.select:
+            elif utils.version.get_bone_sel(obj, bone):
                 self.state = 'sel'
             else:
                 self.state = 'desel'
@@ -155,8 +155,9 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
             # check bone visibility
             exportable = bone.xray.exportable
-            hided = bone.hide or not exportable
-            if hided:
+            hided = utils.version.get_bone_vis(obj, bone)
+            bone_vis = hided or not exportable
+            if bone_vis:
                 continue
 
             # get geometry state
@@ -167,7 +168,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             if shape.type in ('0', '4'):
                 continue
 
-            draw_overlays = not hided and self.is_pose
+            draw_overlays = not bone_vis and self.is_pose
 
             # generate shape
             if self.shapes:
@@ -210,7 +211,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             is_active = False
 
         has_limits = bone.xray.ikjoint.type in {'2', '3', '5'}
-        if is_active and has_limits and bone.select:
+        if is_active and has_limits and utils.version.get_bone_sel(obj, bone):
 
             arm_xray = obj.data.xray
 

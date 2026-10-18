@@ -88,10 +88,10 @@ def initial_state(fun):
     return wrapper
 
 
-def insert_keyframes(frames_coords, fcurves):
-    for curve_index in range(len(fcurves)):
+def insert_keyframes(frames_coords, f_curves):
+    for curve_index in range(len(f_curves)):
         coords = frames_coords[curve_index]
-        fcurve = fcurves[curve_index]
+        fcurve = f_curves[curve_index]
         insert_keyframes_for_single_curve(coords, fcurve)
 
 

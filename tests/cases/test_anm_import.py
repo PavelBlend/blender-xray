@@ -19,7 +19,7 @@ class TestAnmImport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertEqual(obj_camera.type, 'CAMERA')
-        self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
+        self.assertEqual(len(tests.utils.get_fcurves(act)[0].keyframe_points), 3)
 
     def test_v3(self):
         # Act
@@ -141,7 +141,7 @@ class TestAnmImport(tests.utils.XRayTestCase):
 
         # Assert
         for curve_index in range(6):
-            keyframes = act.fcurves[curve_index].keyframe_points
+            keyframes = tests.utils.get_fcurves(act)[curve_index].keyframe_points
             self.assertEqual(len(keyframes), 3)
 
             for key in keyframes:

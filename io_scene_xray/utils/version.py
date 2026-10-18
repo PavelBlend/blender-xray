@@ -54,6 +54,10 @@ def is_blender_44():
     return bpy.app.version >= (4, 4, 0)
 
 
+def is_blender_5():
+    return bpy.app.version >= (5, 0, 0)
+
+
 def support_principled_shader():
     return bpy.app.version >= (2, 79, 0)
 
@@ -101,6 +105,11 @@ IS_34 = is_blender_34()
 IS_4 = is_blender_4()
 IS_41 = is_blender_41()
 IS_44 = is_blender_44()
+IS_5 = is_blender_5()
+
+
+if IS_5:
+    import bpy_extras.anim_utils
 
 
 def get_import_export_menus():
@@ -468,8 +477,37 @@ def set_empty_draw_size(empty_object, draw_size):
         empty_object.empty_draw_size = draw_size
 
 
+def create_fcurve(act=None, data_path=None, index=0, group=''):
+    if IS_5:
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurve = cbag.fcurves.new(data_path, index=index, group_name=group)
+    else:
+        fcurve = act.fcurves.new(data_path, index=index, action_group=group)
+    return fcurve
+
+
+def get_fcurves(act=None):
+    if IS_5:
+        autils = bpy_extras.anim_utils
+        if not act.slots:
+            act.slots.new(id_type='OBJECT', name=act.name)
+        slot = act.slots[0]
+        cbag = autils.action_ensure_channelbag_for_slot(act, slot)
+        fcurves = cbag.fcurves
+    else:
+        fcurves = act.fcurves
+    return fcurves
+
+
 def set_action_slot(bpy_obj, action):
     if IS_44:
+        if not bpy_obj.animation_data:
+            bpy_obj.animation_data_create()
+        bpy_obj.animation_data.action = action
         bpy_obj.animation_data.action_slot = action.slots[0]
 
 
@@ -572,6 +610,34 @@ def get_used_mats(bpy_mesh):
 
     mats = tuple(set(mats))
     return mats
+
+
+def _get_bone(obj, bone):
+    if IS_5:
+        bone = obj.pose.bones[bone.name]
+    return bone
+
+
+def _get_bone_prop(obj, bone, prop):
+    bone = _get_bone(obj, bone)
+    return getattr(bone, prop)
+
+
+def get_bone_vis(obj, bone):
+    return _get_bone_prop(obj, bone, 'hide')
+
+
+def get_bone_sel(obj, bone):
+    return _get_bone_prop(obj, bone, 'select')
+
+
+def _set_bone_prop(obj, bone, prop, value):
+    bone = _get_bone(obj, bone)
+    return setattr(bone, prop, value)
+
+
+def set_bone_sel(obj, bone, value):
+    _set_bone_prop(obj, bone, 'select', value)
 
 
 def get_bone_groups(obj):

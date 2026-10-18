@@ -174,9 +174,11 @@ def update_motion_collection_index(self, context):
             if dep_obj:
                 anim_data = dep_obj.animation_data_create()
                 anim_data.action = act
+                utils.version.set_action_slot(dep_obj, act)
         else:
             anim_data = arm_obj.animation_data_create()
             anim_data.action = act
+            utils.version.set_action_slot(arm_obj, act)
 
 
 def get_color_prop(name, size):

@@ -197,19 +197,23 @@ def read_motion(
 
             translate_fcurves = []
             for translate_index in range(3):    # x, y, z
-                translate_fcurve = act.fcurves.new(
-                    'pose.bones["{}"].location'.format(bone_name),
+                dpath = 'pose.bones["{}"].location'.format(bone_name)
+                translate_fcurve = utils.version.create_fcurve(
+                    act=act,
+                    data_path=dpath,
                     index=translate_index,
-                    action_group=bone_name
+                    group=bone_name
                 )
                 translate_fcurves.append(translate_fcurve)
 
             rotate_fcurves = []
             for rotate_index in range(3):    # x, y, z
-                rotate_fcurve = act.fcurves.new(
-                    'pose.bones["{}"].rotation_euler'.format(bone_name),
+                dpath = 'pose.bones["{}"].rotation_euler'.format(bone_name)
+                rotate_fcurve = utils.version.create_fcurve(
+                    act=act,
+                    data_path=dpath,
                     index=rotate_index,
-                    action_group=bone_name
+                    group=bone_name
                 )
                 rotate_fcurves.append(rotate_fcurve)
 
@@ -322,8 +326,8 @@ def read_motion(
                         frames_coords[axis + 3].extend((rot_index, rot[axis]))
 
             # insert keyframes
-            fcurves = [*translate_fcurves, *rotate_fcurves]
-            utils.action.insert_keyframes(frames_coords, fcurves)
+            all_fcurves = [*translate_fcurves, *rotate_fcurves]
+            utils.action.insert_keyframes(frames_coords, all_fcurves)
 
         if cannot_find_bones:
             raise log.AppError(

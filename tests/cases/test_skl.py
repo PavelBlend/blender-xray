@@ -35,7 +35,7 @@ class TestSklImport(utils.XRayTestCase):
         self.assertReportsNotContains('ERROR')
         self.assertEqual(len(bpy.data.actions), 1)
         act = bpy.data.actions['test_fmt']
-        self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
+        self.assertEqual(len(utils.get_fcurves(act)[0].keyframe_points), 3)
 
     def test_skls(self):
         # Arrange
@@ -52,7 +52,7 @@ class TestSklImport(utils.XRayTestCase):
         self.assertReportsNotContains('ERROR')
         self.assertEqual(len(bpy.data.actions), 1)
         act = bpy.data.actions['xact']
-        self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
+        self.assertEqual(len(utils.get_fcurves(act)[0].keyframe_points), 3)
         self.assertEqual(motions, ['xact'])
 
     def test_skl_filter(self):

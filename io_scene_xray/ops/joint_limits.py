@@ -90,7 +90,7 @@ def get_bone_list(obj, mode, report):
             report({'ERROR'}, 'No active bone')
     elif mode == 'SELECTED_BONES':
         for bone in obj.data.bones:
-            if bone.select:
+            if utils.version.get_bone_sel(obj, bone):
                 bones.append(bone)
         if not bones:
             report({'ERROR'}, 'No selected bones')
@@ -263,7 +263,7 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
         obj = context.active_object
         for bone in obj.data.bones:
             xray = bone.xray
-            if bone.select:
+            if utils.version.get_bone_sel(obj, bone):
                 pose_bone = obj.pose.bones[bone.name]
                 ik = xray.ikjoint
                 ik.lim_x_min = -pose_bone.ik_max_x
@@ -287,7 +287,7 @@ class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
         obj = context.active_object
         for bone in obj.data.bones:
             xray = bone.xray
-            if bone.select:
+            if utils.version.get_bone_sel(obj, bone):
                 pose_bone = obj.pose.bones[bone.name]
                 pose_bone.use_ik_limit_x = True
                 pose_bone.use_ik_limit_y = True
@@ -320,7 +320,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
     def execute(self, context):
         obj = context.active_object
         for bone in obj.data.bones:
-            if bone.select:
+            if utils.version.get_bone_sel(obj, bone):
                 pose_bone = obj.pose.bones[bone.name]
                 pose_bone.use_ik_limit_x = False
                 pose_bone.use_ik_limit_y = False

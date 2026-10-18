@@ -125,13 +125,17 @@ class TestOmf(tests.utils.XRayTestCase):
             for bone_name in ('bone_0', 'bone_1'):
 
                 for curve_index in range(3):
-                    fcurve_loc = act.fcurves.new(
+                    fcurve_loc = tests.utils.create_fcurve(
+                        act,
                         'pose.bones["{}"].location'.format(bone_name),
-                        index=curve_index
+                        curve_index,
+                        ''
                     )
-                    fcurve_rot = act.fcurves.new(
+                    fcurve_rot = tests.utils.create_fcurve(
+                        act,
                         'pose.bones["{}"].rotation_euler'.format(bone_name),
-                        index=curve_index
+                        curve_index,
+                        ''
                     )
 
                     for frame, value in zip((0, 10), (0, 1)):

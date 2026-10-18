@@ -88,6 +88,7 @@ class _BoneShapeEditHelper:
         return bone
 
     def activate(self, context):
+        obj = context.active_object
         bone = context.active_bone
         armature = bone.id_data
         target_name = bone.name
@@ -99,12 +100,16 @@ class _BoneShapeEditHelper:
                 helper = edit_bones.new(self._name)
                 helper.show_wire = True
             helper.parent = target_edit
+            helper_name = helper.name
             for key in ('head', 'tail', 'roll'):
                 setattr(helper, key, getattr(target_edit, key))
+        helper_bone = armature.bones[helper_name]
+        utils.version.set_bone_sel(obj, helper_bone, True)
         bone = armature.bones[self._name]
         bone.xray.exportable = False
         armature.bones.active = bone
-        armature.bones[target_name].select = False
+        target_bone = armature.bones[target_name]
+        utils.version.set_bone_sel(obj, target_bone, False)
         self.update(context)
 
     def update(self, context):

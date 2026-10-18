@@ -22,7 +22,7 @@ class TestIOMotions(utils.XRayTestCase):
             files=[{'name': 'test.object'}],
         )
         imp_act = bpy.data.actions[1]
-        self.assertEqual(len(imp_act.fcurves[0].keyframe_points), 5)  # for now
+        self.assertEqual(len(utils.get_fcurves(imp_act)[0].keyframe_points), 5)  # for now
         self.assertEqual(imp_act.frame_range[1], 4)
 
     def test_io_baked(self):
@@ -44,7 +44,7 @@ class TestIOMotions(utils.XRayTestCase):
             files=[{'name': 'test.object'}],
         )
         imp_act = bpy.data.actions[1]
-        self.assertEqual(len(imp_act.fcurves[0].keyframe_points), 5)
+        self.assertEqual(len(utils.get_fcurves(imp_act)[0].keyframe_points), 5)
         self.assertEqual(imp_act.frame_range[1], 4)
 
 

@@ -90,15 +90,17 @@ class TestOpsMotionBrowser(tests.utils.XRayTestCase):
 
             # create f-curves
             for fcurve_index in range(3):
-                trn_curve = act.fcurves.new(
+                trn_curve = tests.utils.create_fcurve(
+                    act,
                     'pose.bones["{}"].location'.format(self.bone_name),
-                    index=fcurve_index,
-                    action_group=self.bone_name
+                    fcurve_index,
+                    self.bone_name
                 )
-                rot_curve = act.fcurves.new(
+                rot_curve = tests.utils.create_fcurve(
+                    act,
                     'pose.bones["{}"].rotation_euler'.format(self.bone_name),
-                    index=fcurve_index,
-                    action_group=self.bone_name
+                    fcurve_index,
+                    self.bone_name
                 )
 
                 # insert keyframes

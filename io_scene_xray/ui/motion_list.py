@@ -82,7 +82,9 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
         for action in bpy.data.actions:
             action_bones = set()
 
-            for fcurve in action.fcurves:
+            f_curves = utils.version.get_fcurves(act=action)
+
+            for fcurve in f_curves:
                 path = fcurve.data_path
 
                 if path.startswith(path_pose):
