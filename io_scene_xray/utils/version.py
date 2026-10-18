@@ -505,6 +505,9 @@ def get_fcurves(act=None):
 
 def set_action_slot(bpy_obj, action):
     if IS_44:
+        if not bpy_obj.animation_data:
+            bpy_obj.animation_data_create()
+        bpy_obj.animation_data.action = action
         bpy_obj.animation_data.action_slot = action.slots[0]
 
 
