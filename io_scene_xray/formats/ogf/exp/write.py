@@ -47,7 +47,12 @@ def write_skeleton(root_obj, arm_obj, ogf_writer, ctx, meshes, bones, scale):
     write_children(meshes, ogf_writer)
 
     # bone names
-    bone.write_bone_names(bones, scale, ogf_writer)
+    bone.write_bone_names(
+        bones,
+        scale,
+        ctx.use_obb_rotation,
+        ogf_writer
+    )
 
     # ik data
     ik.write_ik_data(arm_obj, bones, scale, ogf_writer)

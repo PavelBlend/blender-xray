@@ -64,15 +64,19 @@ def _get_bone_box(bone, bone_mat, scale, mul):
     return box_rot, box_trn, box_hsz
 
 
-def _get_bone_bound(bone, scale, mul):
+def _get_bone_bound(bone, scale, use_obb_rotation, mul):
     vertices, _ = utils.bone.bone_vertices(bone)
 
     if len(vertices) > 3:
-        # generate obb
-        mat = utils.bone.get_obb(bone, False, 0.0)
+        if use_obb_rotation:
+            mat = utils.bone.get_obb(bone, False, 0.0)
 
-        if not mat:
-            # generate aabb
+            if not mat:
+                mat = utils.bone.get_aabb(vertices)
+
+        else:
+            # _get_bone_box converts this model-space AABB to bone-local space
+            # for storage.  At the bind pose it remains model-axis-aligned.
             mat = utils.bone.get_aabb(vertices)
 
         if mat:
@@ -87,7 +91,7 @@ def _get_bone_bound(bone, scale, mul):
     return box_rot, box_trn, box_hsz
 
 
-def write_bone_names(bones, scale, ogf_writer):
+def write_bone_names(bones, scale, use_obb_rotation, ogf_writer):
     bones_writer = rw.write.PackedWriter()
 
     bones_count = len(bones)
@@ -104,7 +108,12 @@ def write_bone_names(bones, scale, ogf_writer):
             parent_name = ''
 
         # bone bound
-        box_rot, box_trn, box_hsz = _get_bone_bound(bone, scale, multiply)
+        box_rot, box_trn, box_hsz = _get_bone_bound(
+            bone,
+            scale,
+            use_obb_rotation,
+            multiply
+        )
 
         # write
         bones_writer.puts(bone.name.lower())

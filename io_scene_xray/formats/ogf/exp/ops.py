@@ -22,6 +22,7 @@ class ExportOgfContext(
         super().__init__()
         self.fmt_ver = None
         self.hq_export = None
+        self.use_obb_rotation = True
 
 
 op_text = 'Game Object'
@@ -35,6 +36,7 @@ def draw_props(self, context):    # pragma: no cover
     row = layout.row()
     row.active = self.fmt_version == 'cscop' and self.export_motions
     row.prop(self, 'hq_export')
+    layout.prop(self, 'use_obb_rotation')
     layout.prop(self, 'use_export_paths')
     layout.prop(self, 'texture_name_from_image_path')
 
@@ -62,6 +64,14 @@ class XRAY_OT_export_ogf_file(
     hq_export = ie.prop_high_qual()
     use_export_paths = ie.prop_exp_paths()
     export_motions = ie.prop_exp_motions()
+    use_obb_rotation = bpy.props.BoolProperty(
+        name='Use Rotation for OBB',
+        description=(
+            'Use PCA rotation for skeletal bone bounding boxes; disable to '
+            'export model-axis-aligned bounds'
+        ),
+        default=True
+    )
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -80,6 +90,7 @@ class XRAY_OT_export_ogf_file(
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
+        export_context.use_obb_rotation = self.use_obb_rotation
 
         root_objs = utils.obj.get_root_objs(export_context)
 
@@ -161,6 +172,14 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
     fmt_version = ie.prop_sdk_ver()
     hq_export = ie.prop_high_qual()
     use_export_paths = ie.prop_exp_paths()
+    use_obb_rotation = bpy.props.BoolProperty(
+        name='Use Rotation for OBB',
+        description=(
+            'Use PCA rotation for skeletal bone bounding boxes; disable to '
+            'export model-axis-aligned bounds'
+        ),
+        default=True
+    )
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
@@ -179,6 +198,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         export_context.export_motions = self.export_motions
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
+        export_context.use_obb_rotation = self.use_obb_rotation
 
         root_objs = utils.obj.get_root_objs(export_context)
 
