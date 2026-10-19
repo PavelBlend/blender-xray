@@ -114,8 +114,8 @@ def generate_obb(verts, for_cylinder):
         mathutils.Matrix.Scale(abs(scale[1]), 4, (0, 1, 0)),
         mathutils.Matrix.Scale(abs(scale[2]), 4, (0, 0, 1))
     )
-    inv_scl = mat_scl.inverted(None)
-    if inv_scl is None:
+    inv_scl = mat_scl.inverted(False)
+    if inv_scl is False:
         return
 
     mat_obb = version.multiply(mat_loc, mat_rot, mat_scl)
