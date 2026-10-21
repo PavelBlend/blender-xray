@@ -346,6 +346,7 @@ def import_anim(obj, file, animation_name):
     if not obj.animation_data:
         obj.animation_data_create()
     obj.animation_data.action = act
+    utils.version.set_action_slot(obj, act)
 
     # set action frame range
     frame_start, frame_end = act.frame_range
