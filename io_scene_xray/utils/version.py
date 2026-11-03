@@ -218,14 +218,16 @@ def _make_annotations(cls):
         }
 
     if bl_props:
+        try:
+            import annotationlib
+        except ImportError:
+            annotations = dict(cls.__dict__.get('__annotations__', {}))
+        else:
+            annotations = annotationlib.get_annotations(cls)
 
-        if '__annotations__' not in cls.__dict__:
-            setattr(cls, '__annotations__', {})
-
-        annotations = cls.__dict__['__annotations__']
-
-        for key, value in bl_props.items():
-            annotations[key] = value
+        annotations.update(bl_props)
+        cls.__annotations__ = annotations
+        for key in bl_props:
             delattr(cls, key)
 
     return cls
