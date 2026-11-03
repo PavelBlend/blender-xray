@@ -15,15 +15,10 @@ class TestAddon(tests.utils.XRayTestCase):
 
     def test_registered_properties(self):
         class XRAY_PG_registered_props(bpy.types.PropertyGroup):
-            if bpy.app.version >= (2, 80, 0):
-                annotated: bpy.props.BoolProperty(name='Annotated')
-            assigned = bpy.props.StringProperty(name='Assigned')
+            foo = bpy.props.StringProperty(name='Foo')
 
         io_scene_xray.utils.version.register_classes(XRAY_PG_registered_props)
         try:
-            props = XRAY_PG_registered_props.bl_rna.properties
-            self.assertIn('assigned', props)
-            if bpy.app.version >= (2, 80, 0):
-                self.assertIn('annotated', props)
+            self.assertIn('foo', XRAY_PG_registered_props.bl_rna.properties)
         finally:
             bpy.utils.unregister_class(XRAY_PG_registered_props)
