@@ -79,7 +79,8 @@ def import_file(file_path, context):
         elif chunk_id in (
                 fmt.Chunks.Object.SURFACES,
                 fmt.Chunks.Object.SURFACES1,
-                fmt.Chunks.Object.SURFACES2
+                fmt.Chunks.Object.SURFACES2,
+                fmt.Chunks.Object.SURFACES_SHARED
             ):
 
             reader = rw.read.PackedReader(chunk_data)
@@ -111,6 +112,25 @@ def import_file(file_path, context):
                         # old format (Objects\Rainbow\lest.object)
                         if texture == vmap:
                             vmap = 'Texture'
+
+                    renamemap[vmap.lower()] = vmap
+
+                elif chunk_id == fmt.Chunks.Object.SURFACES_SHARED:
+                    is_shared = reader.getf('<B')[0]
+                    name = reader.gets()
+                    if is_shared:
+                        eshader = 'default'
+                        cshader = 'default'
+                        gamemtl = 'default'
+                        texture = ''
+                    else:
+                        eshader = reader.gets()
+                        cshader = reader.gets()
+                        gamemtl = reader.gets()
+                        texture = reader.gets()
+                    vmap = reader.gets()
+                    flags = reader.uint32()
+                    reader.skip(4 + 4)    # fvf and TCs count
 
                     renamemap[vmap.lower()] = vmap
 

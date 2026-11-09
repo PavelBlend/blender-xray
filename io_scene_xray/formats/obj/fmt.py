@@ -6,6 +6,7 @@ class Chunks:
         SURFACES = 0x0905
         SURFACES1 = 0x0906
         SURFACES2 = 0x0907
+        SURFACES_SHARED = 0x0908
         MESHES = 0x0910
         LIB_VERSION = 0x0911
         USERDATA = 0x0912
